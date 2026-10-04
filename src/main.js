@@ -1,5 +1,7 @@
 // Phở Đi! - Entry point
-// Task 1.1: load config, hiện màn intro
+// Task 1.2: intro scene với background
+
+import { renderIntro } from './scenes/intro.js';
 
 const VERSION = '0.1.0';
 
@@ -19,8 +21,9 @@ async function main() {
   const config = await loadConfig();
   console.log('[Phở Đi!] config đã tải:', config.version);
 
-  document.getElementById('btn-start')?.addEventListener('click', () => {
-    console.log('[Phở Đi!] Bắt đầu chơi (task 1.2 sẽ làm intro đầy đủ)');
+  const introEl = document.getElementById('screen-intro');
+  renderIntro(introEl, () => {
+    console.log('[Phở Đi!] Bắt đầu chơi → màn chuẩn bị (task 4.1)');
     showScreen('screen-counter');
   });
 }
