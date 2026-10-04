@@ -1,51 +1,91 @@
-// Phở Đi! - Scene: Quầy bán chính
-// Task 2.1: background quầy + hotspot zones + HUD
+// Phở Đi! - Scene: Quầy bán chính (v2)
+// Background CSS + sprite, không dùng ảnh AI
 
 import { playSfx } from '../audio.js';
 
-const BG_URL = 'assets/backgrounds/media-generation-bg-quay-pho-0-bf247bf6-5643-45f4-a500-6c0578de05fb.webp';
-
 // 8 bước làm phở
 export const STEPS = [
-  { id: 'trung',   label: 'Trụng',  icon: '🍜', hotspot: 'noi-trung' },
-  { id: 'to',      label: 'Tô',     icon: '🥣', hotspot: 'to' },
-  { id: 'nuoc',    label: 'Nước',   icon: '🍲', hotspot: 'noi-nuoc' },
-  { id: 'thit',    label: 'Thịt',   icon: '🥩', hotspot: 'khay-thit' },
-  { id: 'hanh',    label: 'Hành',   icon: '🌿', hotspot: 'khay-hanh' },
-  { id: 'topping', label: 'Topping',icon: '✨', hotspot: 'khay-topping' },
-  { id: 'rau',     label: 'Rau',    icon: '🥬', hotspot: 'khay-rau' },
-  { id: 'bung',    label: 'Bưng',   icon: '🛎️', hotspot: 'khay-bung' },
+  { id: 'trung',   label: 'Trụng',   icon: '🍜' },
+  { id: 'to',      label: 'Tô',      icon: '🥣' },
+  { id: 'nuoc',    label: 'Nước',    icon: '🍲' },
+  { id: 'thit',    label: 'Thịt',    icon: '🥩' },
+  { id: 'hanh',    label: 'Hành',    icon: '🌿' },
+  { id: 'topping', label: 'Topping', icon: '✨' },
+  { id: 'rau',     label: 'Rau',     icon: '🥬' },
+  { id: 'bung',    label: 'Bưng',    icon: '🛎️' },
 ];
 
-// Hotspot zones (tọa độ % trên màn hình)
-const HOTSPOTS = [
-  { id: 'noi-trung',    label: 'Nồi trụng',    x: 12, y: 38, w: 20, h: 16 },
-  { id: 'to',           label: 'Tô',           x: 38, y: 38, w: 20, h: 16 },
-  { id: 'noi-nuoc',     label: 'Nồi nước dùng',x: 64, y: 38, w: 24, h: 16 },
-  { id: 'khay-thit',    label: 'Khay thịt',    x: 8,  y: 58, w: 20, h: 14 },
-  { id: 'khay-hanh',    label: 'Khay hành',    x: 32, y: 58, w: 18, h: 14 },
-  { id: 'khay-topping', label: 'Topping',      x: 54, y: 58, w: 18, h: 14 },
-  { id: 'khay-rau',     label: 'Khay rau',     x: 76, y: 58, w: 18, h: 14 },
-  { id: 'khay-bung',    label: 'Bưng ra',      x: 38, y: 76, w: 24, h: 12 },
+// Các trạm trên quầy — mỗi trạm có sprite riêng
+const STATIONS = [
+  {
+    id: 'noi-trung', label: 'Trụng bánh',
+    sprite: 'assets/sprites/media-generation-banh-pho-0-1f411459-2669-4538-9dc1-9401654d8d30.webp',
+    x: 8, y: 30, w: 26,
+  },
+  {
+    id: 'noi-nuoc', label: 'Nước dùng',
+    sprite: 'assets/sprites/media-generation-noi-nuoc-dung-0-9de6b8ae-69bd-46f6-8128-28ce5a2acf48.webp',
+    x: 38, y: 28, w: 28,
+  },
+  {
+    id: 'to', label: 'Tô',
+    sprite: 'assets/sprites/media-generation-to-pho-0-70c9e458-f18d-40cc-8741-6713dbb89a2b.webp',
+    x: 70, y: 30, w: 24,
+  },
+  {
+    id: 'khay-thit', label: 'Thịt bò',
+    sprite: 'assets/sprites/media-generation-thit-bo-tai-0-7b11bcd4-0c16-465b-ab0c-d9a2e3700931.webp',
+    x: 6, y: 52, w: 22,
+  },
+  {
+    id: 'khay-ga', label: 'Thịt gà',
+    sprite: 'assets/sprites/media-generation-thit-ga-0-5383b095-817f-4f66-a955-eb4069c87a87.webp',
+    x: 30, y: 52, w: 22,
+  },
+  {
+    id: 'khay-hanh', label: 'Hành ngò',
+    sprite: 'assets/sprites/media-generation-hanh-ngo-0-a65ebdf2-4dad-4f55-b2a2-1e8d88ae26d8.webp',
+    x: 54, y: 52, w: 20,
+  },
+  {
+    id: 'khay-rau', label: 'Rau thơm',
+    sprite: 'assets/sprites/media-generation-rau-thom-0-c22d5f32-04b3-476a-8c15-62080123353c.webp',
+    x: 76, y: 52, w: 20,
+  },
+  {
+    id: 'khay-topping', label: 'Topping',
+    sprite: 'assets/sprites/media-generation-quay-0-3dc1c407-35bc-44ff-84cb-ffbc5f437ff2.webp',
+    x: 18, y: 70, w: 20,
+  },
+  {
+    id: 'khay-trung', label: 'Trứng',
+    sprite: 'assets/sprites/media-generation-trung-chan-0-822707a4-97c2-4c10-b3f4-b9d8ecd9c655.webp',
+    x: 42, y: 70, w: 18,
+  },
+  {
+    id: 'khay-gia', label: 'Giá',
+    sprite: 'assets/sprites/media-generation-gia-do-0-a7f39c46-5e9d-458b-a64f-c4b7aadefe0d.webp',
+    x: 64, y: 70, w: 18,
+  },
 ];
 
 export function renderCounter(container, state, callbacks = {}) {
   const { onHotspot = () => {}, onBack = () => {} } = callbacks;
 
   container.innerHTML = `
-    <div class="counter-bg" style="background-image: url('${BG_URL}')"></div>
+    <div class="counter-bg-css"></div>
     <div class="hud-top">
       <div class="hud-item">🕐 <span id="hud-time">${state.time || '6:00'}</span></div>
       <div class="hud-item">💰 <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div>
       <div class="hud-item">⭐ <span id="hud-star">${state.stars || 0}</span></div>
       <div class="hud-item">📅 <span id="hud-day">Ngày ${state.day || 1}</span></div>
     </div>
-    <div class="hotspot-layer">
-      ${HOTSPOTS.map(h => `
-        <button class="hotspot" data-id="${h.id}"
-          style="left:${h.x}%; top:${h.y}%; width:${h.w}%; height:${h.h}%;"
-          title="${h.label}">
-          <span class="hotspot-label">${h.label}</span>
+    <div class="station-layer">
+      ${STATIONS.map(s => `
+        <button class="station" data-id="${s.id}"
+          style="left:${s.x}%; top:${s.y}%; width:${s.w}%;">
+          <img src="${s.sprite}" alt="${s.label}" draggable="false">
+          <span class="station-label">${s.label}</span>
         </button>
       `).join('')}
     </div>
@@ -60,7 +100,7 @@ export function renderCounter(container, state, callbacks = {}) {
     <button id="btn-counter-back" class="btn-back">←</button>
   `;
 
-  container.querySelectorAll('.hotspot').forEach(btn => {
+  container.querySelectorAll('.station').forEach(btn => {
     btn.addEventListener('click', () => {
       playSfx('pop');
       btn.classList.add('tapped');
