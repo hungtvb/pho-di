@@ -2,6 +2,7 @@
 // Task 1.2: intro scene với background
 
 import { renderIntro } from './scenes/intro.js';
+import { unlockAudio, playMusic, playSfx, toggleMusic, toggleSfx, getSettings } from './audio.js';
 
 const VERSION = '0.1.0';
 
@@ -22,8 +23,12 @@ async function main() {
   console.log('[Phở Đi!] config đã tải:', config.version);
 
   const introEl = document.getElementById('screen-intro');
+  unlockAudio(); // fix iOS: mở khóa audio ở lần chạm đầu
+
   renderIntro(introEl, () => {
     console.log('[Phở Đi!] Bắt đầu chơi → màn quầy (task 2.1)');
+    playSfx('click');
+    playMusic();
     showScreen('screen-counter');
   });
 
