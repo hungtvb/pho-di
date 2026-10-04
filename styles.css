@@ -1,0 +1,75 @@
+/* Phở Đi! - Base styles */
+:root {
+  --s: min(1, 100vw / 430);           /* scale factor */
+  --cream: #F6EEDC;
+  --wood: #5E3C2C;
+  --paprika: #ED6E3A;
+  --turmeric: #DAA520;
+  --basil: #6C9E4F;
+  --chili: #C0392B;
+  --ink: #3A2A20;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Nunito', sans-serif;
+  background: #2a1a12;
+  color: var(--ink);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+#game {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  max-width: 430px;
+  max-height: 920px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--cream);
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.screen.active { display: flex; }
+
+h1, h2, h3, .btn-primary {
+  font-family: 'Baloo 2', cursive;
+}
+
+#screen-intro h1 {
+  font-size: 3.5rem;
+  color: var(--chili);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.08);
+}
+#screen-intro .subtitle {
+  font-size: 1.1rem;
+  color: var(--wood);
+  margin: 0.5rem 0 2rem;
+}
+
+.btn-primary {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, var(--paprika), var(--chili));
+  border: none;
+  border-radius: 999px;
+  padding: 0.9rem 2.5rem;
+  min-height: 56px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(192,57,43,0.35);
+  transition: transform 0.08s ease;
+}
+.btn-primary:active { transform: scale(0.96); }
