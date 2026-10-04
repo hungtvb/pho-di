@@ -151,18 +151,18 @@ h1, h2, h3, .btn-primary {
 /* Tên quán trên bảng hiệu */
 .signboard-name {
   position: absolute;
-  top: 18%;
+  top: 11%;
   left: 50%;
-  transform: translateX(-50%) rotate(-1deg);
+  transform: translate(-50%, -50%) rotate(-1deg);
   z-index: 1;
   font-family: 'Baloo 2', cursive;
   font-weight: 800;
-  font-size: 1.6rem;
+  font-size: 2.8rem;
   color: #fff8e7;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  letter-spacing: 1px;
+  text-shadow: 0 3px 6px rgba(0,0,0,0.5);
+  letter-spacing: 2px;
   white-space: nowrap;
-  max-width: 80%;
+  max-width: 85%;
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: none;
