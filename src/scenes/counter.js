@@ -20,17 +20,17 @@ const STATIONS = [
   {
     id: 'noi-trung', label: 'Trụng bánh',
     sprite: 'assets/sprites/banh-pho-v2.webp',
-    x: 8, y: 30, w: 26,
+    x: 8, y: 30, w: 22,
   },
   {
     id: 'noi-nuoc', label: 'Nước dùng',
     sprite: 'assets/sprites/noi-nuoc-dung-v2.webp',
-    x: 38, y: 28, w: 28,
+    x: 38, y: 28, w: 22,
   },
   {
     id: 'to', label: 'Tô',
     sprite: 'assets/sprites/to-pho-v2.webp',
-    x: 70, y: 30, w: 24,
+    x: 70, y: 30, w: 22,
   },
   {
     id: 'khay-thit', label: 'Thịt bò',
@@ -45,27 +45,27 @@ const STATIONS = [
   {
     id: 'khay-hanh', label: 'Hành ngò',
     sprite: 'assets/sprites/hanh-ngo-v2.webp',
-    x: 54, y: 52, w: 20,
+    x: 54, y: 52, w: 22,
   },
   {
     id: 'khay-rau', label: 'Rau thơm',
     sprite: 'assets/sprites/rau-thom-v2.webp',
-    x: 76, y: 52, w: 20,
+    x: 76, y: 52, w: 22,
   },
   {
     id: 'khay-topping', label: 'Topping',
     sprite: 'assets/sprites/quay-v2.webp',
-    x: 18, y: 70, w: 20,
+    x: 18, y: 70, w: 22,
   },
   {
     id: 'khay-trung', label: 'Trứng',
     sprite: 'assets/sprites/trung-chan-v2.webp',
-    x: 42, y: 70, w: 18,
+    x: 42, y: 70, w: 22,
   },
   {
     id: 'khay-gia', label: 'Giá',
     sprite: 'assets/sprites/gia-do-v2.webp',
-    x: 64, y: 70, w: 18,
+    x: 64, y: 70, w: 22,
   },
 ];
 
