@@ -218,11 +218,73 @@ h1, h2, h3, .btn-primary {
 
 /* ---- Counter scene (task 2.1) ---- */
 #screen-counter { padding: 0; justify-content: flex-start; }
-.counter-bg {
+/* Background CSS: gradient ấm, contrast thấp, màu tươi sáng */
+.counter-bg-css {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 30%, rgba(255,248,231,0.9) 0%, transparent 70%),
+    linear-gradient(180deg, #F9F0DC 0%, #F6EEDC 40%, #EFDDBE 75%, #E8CFA8 100%);
+}
+.counter-bg-css::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Vân gỗ nhẹ */
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px, transparent 60px,
+    rgba(160,120,80,0.04) 60px, rgba(160,120,80,0.04) 62px
+  );
+}
+.counter-bg-css::after {
+  content: '';
+  position: absolute;
+  left: 4%; right: 4%; top: 24%; bottom: 18%;
+  background: linear-gradient(180deg, #D9A86C 0%, #C8955C 100%);
+  border-radius: 24px;
+  border: 4px solid #8B5E34;
+  box-shadow: 0 8px 24px rgba(139,94,52,0.25), inset 0 2px 0 rgba(255,255,255,0.3);
+}
+/* Các trạm nguyên liệu */
+.station-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.station {
+  position: absolute;
+  background: rgba(255,255,255,0.75);
+  border: 3px solid rgba(255,255,255,0.95);
+  border-radius: 18px;
+  padding: 6px 6px 4px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(139,94,52,0.2);
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.station img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  pointer-events: none;
+}
+.station-label {
+  font-family: 'Baloo 2', cursive;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--wood);
+  margin-top: 2px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.station:active, .station.tapped {
+  transform: scale(0.93);
+  box-shadow: 0 2px 6px rgba(237,110,58,0.4);
+  border-color: var(--paprika);
 }
 .hud-top {
   position: relative;
@@ -246,26 +308,7 @@ h1, h2, h3, .btn-primary {
   inset: 0;
   z-index: 1;
 }
-.hotspot {
-  position: absolute;
-  background: rgba(255,255,255,0.08);
-  border: 2px dashed rgba(255,255,255,0.35);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
-}
-.hotspot:active, .hotspot.tapped {
-  background: rgba(237,110,58,0.35);
-  transform: scale(0.97);
-}
-.hotspot-label {
-  font-family: 'Baloo 2', cursive;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
-  pointer-events: none;
-}
+/* (hotspot cũ không dùng nữa — dùng .station thay thế) */
 .hud-steps {
   position: relative;
   z-index: 2;
