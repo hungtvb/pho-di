@@ -23,8 +23,12 @@ async function main() {
 
   const introEl = document.getElementById('screen-intro');
   renderIntro(introEl, () => {
-    console.log('[Phở Đi!] Bắt đầu chơi → màn chuẩn bị (task 4.1)');
+    console.log('[Phở Đi!] Bắt đầu chơi → màn quầy (task 2.1)');
     showScreen('screen-counter');
+  });
+
+  document.getElementById('btn-back')?.addEventListener('click', () => {
+    showScreen('screen-intro');
   });
 }
 
