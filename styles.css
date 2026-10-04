@@ -60,19 +60,31 @@ h1, h2, h3, .btn-primary {
 }
 
 .btn-primary {
+  font-family: 'Baloo 2', cursive;
   font-size: 1.4rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #fff;
-  background: linear-gradient(180deg, var(--paprika), var(--chili));
-  border: none;
+  text-shadow: 0 2px 0 rgba(0,0,0,0.2);
+  letter-spacing: 0.5px;
+  background: linear-gradient(180deg, #f0824a 0%, var(--paprika) 50%, #d15a28 100%);
+  border: 3px solid #fff;
   border-radius: 999px;
   padding: 0.9rem 2.5rem;
   min-height: 56px;
+  min-width: 200px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(192,57,43,0.35);
-  transition: transform 0.08s ease;
+  box-shadow:
+    0 5px 0 #a83a1f,
+    0 8px 16px rgba(0,0,0,0.25);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
-.btn-primary:active { transform: scale(0.96); }
+.btn-primary:hover { filter: brightness(1.06); }
+.btn-primary:active {
+  transform: translateY(4px);
+  box-shadow:
+    0 1px 0 #a83a1f,
+    0 3px 8px rgba(0,0,0,0.2);
+}
 
 /* ---- Intro scene (task 1.2) ---- */
 #screen-intro {
@@ -101,27 +113,35 @@ h1, h2, h3, .btn-primary {
 }
 .intro-logo { font-size: 4rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
 .intro-title {
-  font-size: 3.8rem;
+  font-family: 'Baloo 2', cursive;
+  font-size: 4.2rem;
   font-weight: 800;
   color: #fff;
-  text-shadow: 0 3px 12px rgba(0,0,0,0.4);
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  text-shadow:
+    0 3px 0 var(--chili),
+    0 6px 0 rgba(0,0,0,0.15),
+    0 8px 20px rgba(0,0,0,0.4);
+  -webkit-text-stroke: 1px rgba(192,57,43,0.3);
 }
 .intro-subtitle {
-  font-size: 1.15rem;
+  font-family: 'Baloo 2', cursive;
+  font-weight: 600;
+  font-size: 1.25rem;
   color: var(--cream);
   margin: 0.3rem 0 1.8rem;
-  text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  letter-spacing: 0.5px;
 }
 .btn-start {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   padding: 1rem 3rem;
-  animation: pulse 2s ease-in-out infinite;
+  animation: btn-bounce 2s ease-in-out infinite;
 }
 .btn-start:hover { filter: brightness(1.08); }
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 4px 12px rgba(192,57,43,0.35); }
-  50% { box-shadow: 0 4px 24px rgba(237,110,58,0.65); }
+@keyframes btn-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
 .intro-version {
   margin-top: 1.2rem;
@@ -134,14 +154,18 @@ h1, h2, h3, .btn-primary {
   margin-top: 1.2rem;
 }
 .toggle-btn {
-  width: 48px;
-  height: 48px;
-  font-size: 1.4rem;
-  border: none;
+  width: 52px;
+  height: 52px;
+  font-size: 1.5rem;
+  border: 3px solid rgba(255,255,255,0.8);
   border-radius: 50%;
-  background: rgba(255,255,255,0.2);
+  background: rgba(94,60,44,0.55);
   backdrop-filter: blur(4px);
   cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.25);
   transition: transform 0.08s ease;
 }
-.toggle-btn:active { transform: scale(0.92); }
+.toggle-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.25);
+}
