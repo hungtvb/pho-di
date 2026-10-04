@@ -19,52 +19,52 @@ export const STEPS = [
 const STATIONS = [
   {
     id: 'noi-trung', label: 'Trụng bánh',
-    sprite: 'assets/sprites/media-generation-banh-pho-0-1f411459-2669-4538-9dc1-9401654d8d30.webp',
+    sprite: 'assets/sprites/media-generation-banh-pho-0-1f411459-2669-4538-9dc1-9401654d8d30-std.webp',
     x: 8, y: 30, w: 26,
   },
   {
     id: 'noi-nuoc', label: 'Nước dùng',
-    sprite: 'assets/sprites/media-generation-noi-nuoc-dung-0-9de6b8ae-69bd-46f6-8128-28ce5a2acf48.webp',
+    sprite: 'assets/sprites/media-generation-noi-nuoc-dung-0-9de6b8ae-69bd-46f6-8128-28ce5a2acf48-std.webp',
     x: 38, y: 28, w: 28,
   },
   {
     id: 'to', label: 'Tô',
-    sprite: 'assets/sprites/media-generation-to-pho-0-70c9e458-f18d-40cc-8741-6713dbb89a2b.webp',
+    sprite: 'assets/sprites/media-generation-to-pho-0-70c9e458-f18d-40cc-8741-6713dbb89a2b-std.webp',
     x: 70, y: 30, w: 24,
   },
   {
     id: 'khay-thit', label: 'Thịt bò',
-    sprite: 'assets/sprites/media-generation-thit-bo-tai-0-7b11bcd4-0c16-465b-ab0c-d9a2e3700931.webp',
+    sprite: 'assets/sprites/media-generation-thit-bo-tai-0-7b11bcd4-0c16-465b-ab0c-d9a2e3700931-std.webp',
     x: 6, y: 52, w: 22,
   },
   {
     id: 'khay-ga', label: 'Thịt gà',
-    sprite: 'assets/sprites/media-generation-thit-ga-0-5383b095-817f-4f66-a955-eb4069c87a87.webp',
+    sprite: 'assets/sprites/media-generation-thit-ga-0-5383b095-817f-4f66-a955-eb4069c87a87-std.webp',
     x: 30, y: 52, w: 22,
   },
   {
     id: 'khay-hanh', label: 'Hành ngò',
-    sprite: 'assets/sprites/media-generation-hanh-ngo-0-a65ebdf2-4dad-4f55-b2a2-1e8d88ae26d8.webp',
+    sprite: 'assets/sprites/media-generation-hanh-ngo-0-a65ebdf2-4dad-4f55-b2a2-1e8d88ae26d8-std.webp',
     x: 54, y: 52, w: 20,
   },
   {
     id: 'khay-rau', label: 'Rau thơm',
-    sprite: 'assets/sprites/media-generation-rau-thom-0-c22d5f32-04b3-476a-8c15-62080123353c.webp',
+    sprite: 'assets/sprites/media-generation-rau-thom-0-c22d5f32-04b3-476a-8c15-62080123353c-std.webp',
     x: 76, y: 52, w: 20,
   },
   {
     id: 'khay-topping', label: 'Topping',
-    sprite: 'assets/sprites/media-generation-quay-0-3dc1c407-35bc-44ff-84cb-ffbc5f437ff2.webp',
+    sprite: 'assets/sprites/media-generation-quay-0-3dc1c407-35bc-44ff-84cb-ffbc5f437ff2-std.webp',
     x: 18, y: 70, w: 20,
   },
   {
     id: 'khay-trung', label: 'Trứng',
-    sprite: 'assets/sprites/media-generation-trung-chan-0-822707a4-97c2-4c10-b3f4-b9d8ecd9c655.webp',
+    sprite: 'assets/sprites/media-generation-trung-chan-0-822707a4-97c2-4c10-b3f4-b9d8ecd9c655-std.webp',
     x: 42, y: 70, w: 18,
   },
   {
     id: 'khay-gia', label: 'Giá',
-    sprite: 'assets/sprites/media-generation-gia-do-0-a7f39c46-5e9d-458b-a64f-c4b7aadefe0d.webp',
+    sprite: 'assets/sprites/media-generation-gia-do-0-a7f39c46-5e9d-458b-a64f-c4b7aadefe0d-std.webp',
     x: 64, y: 70, w: 18,
   },
 ];
