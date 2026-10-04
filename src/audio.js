@@ -26,15 +26,31 @@ function ensureCtx() {
   return ctx;
 }
 
-// Mở khóa audio ở lần chạm đầu (fix iOS)
+// Mở khóa audio ở lần chạm đầu (fix iOS) — thử lại cho tới khi thành công
 export function unlockAudio() {
   const unlock = () => {
-    ensureCtx();
-    document.removeEventListener('touchstart', unlock);
-    document.removeEventListener('click', unlock);
+    try {
+      const c = ensureCtx();
+      // Tạo oscillator câm để "đánh thức" AudioContext trên iOS
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      gain.gain.value = 0;
+      osc.connect(gain).connect(c.destination);
+      osc.start(0);
+      osc.stop(0.1);
+      if (c.state === 'running') {
+        document.removeEventListener('touchstart', unlock);
+        document.removeEventListener('click', unlock);
+        document.removeEventListener('touchend', unlock);
+        console.log('[Audio] đã mở khóa');
+      }
+    } catch (e) {
+      console.warn('[Audio] unlock lỗi:', e.message);
+    }
   };
-  document.addEventListener('touchstart', unlock, { once: true });
-  document.addEventListener('click', unlock, { once: true });
+  document.addEventListener('touchstart', unlock);
+  document.addEventListener('touchend', unlock);
+  document.addEventListener('click', unlock);
 }
 
 function tone(freq, dur, type = 'sine', vol = 1, when = 0) {
