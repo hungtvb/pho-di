@@ -128,3 +128,20 @@ h1, h2, h3, .btn-primary {
   font-size: 0.8rem;
   color: rgba(246,238,220,0.7);
 }
+.audio-toggles {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+}
+.toggle-btn {
+  width: 48px;
+  height: 48px;
+  font-size: 1.4rem;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  transition: transform 0.08s ease;
+}
+.toggle-btn:active { transform: scale(0.92); }
