@@ -148,6 +148,52 @@ h1, h2, h3, .btn-primary {
   font-size: 0.8rem;
   color: rgba(246,238,220,0.7);
 }
+/* Tên quán trên bảng hiệu */
+.signboard-name {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
+  z-index: 1;
+  font-family: 'Baloo 2', cursive;
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: #fff8e7;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  max-width: 80%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+/* Ô nhập tên quán */
+.name-input-wrap { margin: 0.5rem 0 1.2rem; width: 100%; display: flex; justify-content: center; }
+.name-input {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.15rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--ink);
+  background: rgba(255,255,255,0.95);
+  border: 3px solid var(--wood);
+  border-radius: 16px;
+  padding: 0.7rem 1rem;
+  width: 78%;
+  max-width: 300px;
+  outline: none;
+  box-shadow: 0 3px 0 rgba(94,60,44,0.4);
+}
+.name-input:focus { border-color: var(--paprika); }
+.name-input::placeholder { color: #b09a86; }
+.intro-shop {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.2rem;
+  color: var(--cream);
+  margin: 0.3rem 0 1.2rem;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.intro-shop strong { color: var(--turmeric); }
 .audio-toggles {
   display: flex;
   gap: 0.8rem;
