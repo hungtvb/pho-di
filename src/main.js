@@ -2,6 +2,7 @@
 // Task 1.2: intro scene với background
 
 import { renderIntro } from './scenes/intro.js';
+import { renderCounter } from './scenes/counter.js';
 import { unlockAudio, playMusic, playSfx, toggleMusic, toggleSfx, getSettings } from './audio.js';
 
 const VERSION = '0.1.0';
@@ -23,17 +24,29 @@ async function main() {
   console.log('[Phở Đi!] config đã tải:', config.version);
 
   const introEl = document.getElementById('screen-intro');
+  const counterEl = document.getElementById('screen-counter');
   unlockAudio(); // fix iOS: mở khóa audio ở lần chạm đầu
 
+  // Game state đơn giản (task 2.4 sẽ mở rộng)
+  const gameState = {
+    money: config.startMoney || 500000,
+    stars: 0,
+    day: 1,
+    time: '6:00',
+    currentStep: 0,
+  };
+
   renderIntro(introEl, () => {
-    console.log('[Phở Đi!] Bắt đầu chơi → màn quầy (task 2.1)');
+    console.log('[Phở Đi!] Bắt đầu chơi → màn quầy');
     playSfx('click');
     playMusic();
+    renderCounter(counterEl, gameState, {
+      onHotspot: (id) => {
+        console.log('[Phở Đi!] chạm hotspot:', id, '(tapflow ở task 2.2)');
+      },
+      onBack: () => showScreen('screen-intro'),
+    });
     showScreen('screen-counter');
-  });
-
-  document.getElementById('btn-back')?.addEventListener('click', () => {
-    showScreen('screen-intro');
   });
 }
 
