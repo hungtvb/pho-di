@@ -19,52 +19,52 @@ export const STEPS = [
 const STATIONS = [
   {
     id: 'noi-trung', label: 'Trụng bánh',
-    sprite: 'assets/sprites/media-generation-banh-pho-v2.webp',
+    sprite: 'assets/sprites/banh-pho-v2.webp',
     x: 8, y: 30, w: 26,
   },
   {
     id: 'noi-nuoc', label: 'Nước dùng',
-    sprite: 'assets/sprites/media-generation-noi-nuoc-dung-v2.webp',
+    sprite: 'assets/sprites/noi-nuoc-dung-v2.webp',
     x: 38, y: 28, w: 28,
   },
   {
     id: 'to', label: 'Tô',
-    sprite: 'assets/sprites/media-generation-to-pho-v2.webp',
+    sprite: 'assets/sprites/to-pho-v2.webp',
     x: 70, y: 30, w: 24,
   },
   {
     id: 'khay-thit', label: 'Thịt bò',
-    sprite: 'assets/sprites/media-generation-thit-bo-tai-v2.webp',
+    sprite: 'assets/sprites/thit-bo-tai-v2.webp',
     x: 6, y: 52, w: 22,
   },
   {
     id: 'khay-ga', label: 'Thịt gà',
-    sprite: 'assets/sprites/media-generation-thit-ga-v2.webp',
+    sprite: 'assets/sprites/thit-ga-v2.webp',
     x: 30, y: 52, w: 22,
   },
   {
     id: 'khay-hanh', label: 'Hành ngò',
-    sprite: 'assets/sprites/media-generation-hanh-ngo-v2.webp',
+    sprite: 'assets/sprites/hanh-ngo-v2.webp',
     x: 54, y: 52, w: 20,
   },
   {
     id: 'khay-rau', label: 'Rau thơm',
-    sprite: 'assets/sprites/media-generation-rau-thom-v2.webp',
+    sprite: 'assets/sprites/rau-thom-v2.webp',
     x: 76, y: 52, w: 20,
   },
   {
     id: 'khay-topping', label: 'Topping',
-    sprite: 'assets/sprites/media-generation-quay-v2.webp',
+    sprite: 'assets/sprites/quay-v2.webp',
     x: 18, y: 70, w: 20,
   },
   {
     id: 'khay-trung', label: 'Trứng',
-    sprite: 'assets/sprites/media-generation-trung-chan-v2.webp',
+    sprite: 'assets/sprites/trung-chan-v2.webp',
     x: 42, y: 70, w: 18,
   },
   {
     id: 'khay-gia', label: 'Giá',
-    sprite: 'assets/sprites/media-generation-gia-do-v2.webp',
+    sprite: 'assets/sprites/gia-do-v2.webp',
     x: 64, y: 70, w: 18,
   },
 ];
