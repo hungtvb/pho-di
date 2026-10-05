@@ -81,7 +81,7 @@ export function renderCounter(container, state, callbacks = {}) {
   container.innerHTML = `
     <div class="counter-bg-css"></div>
     <div class="hud-top">
-      <button id="btn-counter-back" class="btn-back-hud">←</button>
+      <button id="btn-counter-back" class="btn-back-hud"><img src="assets/icons/back.webp" style="width:24px;height:24px;"></button>
       <div class="hud-item"><img src="assets/icons/clock.webp" class="hud-icon"> <span id="hud-time">${state.time || '6:00'}</span></div>
       <div class="hud-item"><img src="assets/icons/money.webp" class="hud-icon"> <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div>
       <div class="hud-item"><img src="assets/icons/star.webp" class="hud-icon"> <span id="hud-star">${state.stars || 0}</span></div>
