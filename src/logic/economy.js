@@ -14,6 +14,14 @@ export const TOPPING_PRICES = {
 
 export const DAILY_RENT = 50000; // chi phí mặt bằng mỗi ngày
 
+export const INGREDIENT_COST = {
+  bo: 20000,   // thịt bò
+  ga: 15000,   // thịt gà
+  quay: 2000,  // quẩy
+  trung: 3000, // trứng chần
+  gia: 1000,   // giá đỗ
+};
+
 /**
  * Tính tổng tiền của 1 order.
  * @param {{meat: string, toppings: string[]}} order
@@ -27,6 +35,21 @@ export function calcPrice(order) {
     0
   );
   return meatPrice + toppingPrice;
+}
+
+/**
+ * Tính vốn nguyên liệu của 1 order.
+ * @param {{meat: string, toppings: string[]}} order
+ * @returns {number} tổng vốn (đồng)
+ */
+export function calcCost(order) {
+  if (!order) return 0;
+  const meatCost = INGREDIENT_COST[order.meat] || 0;
+  const toppingCost = (order.toppings || []).reduce(
+    (sum, t) => sum + (INGREDIENT_COST[t] || 0),
+    0
+  );
+  return meatCost + toppingCost;
 }
 
 /**
