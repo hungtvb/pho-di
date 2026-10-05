@@ -95,6 +95,7 @@ async function main() {
     time: '6:00',
     currentStep: 0,
     dailyCost: 0, // vốn nguyên liệu đã dùng trong ngày (Task 2.4d)
+    dailyRevenue: 0, // doanh thu trong ngày để tính thuế 10% cuối ngày
     stats: {
       happy: 0, neutral: 0, angry: 0, // thống kê feedback (Task 3.3)
       // Task 3.4: huy hiệu + thử thách
