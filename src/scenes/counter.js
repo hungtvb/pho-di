@@ -99,7 +99,7 @@ export function renderCounter(container, state, callbacks = {}) {
       `).join('')}
     </div>
     <div class="serve-overlay" id="serve-overlay" hidden>
-      <button class="btn-serve" id="btn-serve">🛎️ Bưng ra phục vụ!</button>
+      <button class="btn-serve" id="btn-serve"><img src="assets/icons/steps/bung.webp" style="width:24px;height:24px;vertical-align:middle;"> Bưng ra phục vụ!</button>
     </div>
     <div class="toast" id="toast" hidden></div>
     <div class="hud-steps">
@@ -227,10 +227,10 @@ export function renderCounter(container, state, callbacks = {}) {
       playSfx('fail');
       if (activeLeft) {
         // Khách đang nấu bỏ đi → hủy món dở, chuyển sang khách tiếp theo
-        toast(`😠 ${activeName} bỏ đi! Món dở bị hủy. -${leftCount}⭐`, true);
+        toast(`<img src="assets/icons/bell.webp" class="toast-icon"> ${activeName} bỏ đi! Món dở bị hủy. -${leftCount}<img src="assets/icons/star.webp" class="toast-icon">`, true);
         startNextDish();
       } else {
-        toast(`😠 ${leftCount} khách bỏ đi! -${leftCount}⭐`, true);
+        toast(`<img src="assets/icons/bell.webp" class="toast-icon"> ${leftCount} khách bỏ đi! -${leftCount}<img src="assets/icons/star.webp" class="toast-icon">`, true);
         renderCustomers();
       }
     }, 1000);
@@ -328,10 +328,10 @@ export function renderCounter(container, state, callbacks = {}) {
         let starMsg = '';
         if (r.perfect) {
           state.stars = (state.stars || 0) + 1;
-          starMsg = ' +1⭐';
+          starMsg = ' +1<img src="assets/icons/star.webp" class="toast-icon">';
         } else {
           state.stars = Math.max(0, (state.stars || 0) - 1);
-          starMsg = ' -1⭐ (thiếu nguyên liệu)';
+          starMsg = ' -1<img src="assets/icons/star.webp" class="toast-icon"> (thiếu nguyên liệu)';
         }
         updateHUD(container, state);
         toast(`😊 ${served.name} hài lòng! +${formatVND(price)}${starMsg}`);
