@@ -7,7 +7,7 @@ const SAVE_KEY = 'pho-di/v1';
 const CURRENT_VERSION = 1;
 
 // Những field được lưu (không lưu queue/timer/modal — khi load, queue trống)
-const SAVE_FIELDS = ['money', 'stars', 'day', 'time', 'dailyCost', 'dailyRevenue', 'stats', 'inventory'];
+const SAVE_FIELDS = ['money', 'stars', 'day', 'time', 'dailyCost', 'dailyRevenue', 'stats', 'inventory', 'ownedPremises', 'unlockedMeats'];
 
 /**
  * Lưu state game vào localStorage.
@@ -113,4 +113,7 @@ export function applySave(state, data) {
       if (typeof state.inventory[k] !== 'number') state.inventory[k] = INITIAL_STOCK[k];
     }
   }
+  // Task 4.2: save cũ thiếu → mặc định an toàn
+  if (!Array.isArray(state.unlockedMeats)) state.unlockedMeats = [];
+  state.ownedPremises = !!state.ownedPremises;
 }
