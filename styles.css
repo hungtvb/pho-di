@@ -342,6 +342,7 @@ h1, h2, h3, .btn-primary {
   z-index: 2;
   display: flex;
   justify-content: space-around;
+  align-items: center;
   width: 100%;
   padding: 0.6rem 0.4rem;
   background: linear-gradient(180deg, rgba(42,26,18,0.75), rgba(42,26,18,0.45));
