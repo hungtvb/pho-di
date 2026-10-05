@@ -194,7 +194,7 @@ export function renderCounter(container, state, callbacks = {}) {
       if (!queue.isFull()) {
         const c = randomCustomer();
         queue.enqueue(c, cooking);
-        toast(`<img src="assets/icons/sound-on.webp" class="toast-icon"> Khách mới: ${c.name}!`);
+        toast(`<img src="assets/icons/bell.webp" class="toast-icon"> Khách mới: ${c.name}!`);
         playSfx('pop');
         if (!cooking) startNextDish();
         else renderCustomers();
