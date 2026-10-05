@@ -14,16 +14,17 @@ const APP_SHIPPER_NAMES = [
 /**
  * Sinh 1 đơn app ngẫu nhiên.
  * @param {number} day - ngày hiện tại (chỉ để log/debug, chưa dùng)
+ * @param {string[]} unlockedMeats - meat key món đã mở khóa (Task 4.2)
  * @returns {{app, shipperName, servings, orders: [{meat, toppings}[]]}}
  */
-export function randomAppOrder(day) {
+export function randomAppOrder(day, unlockedMeats) {
   const app = APPS[Math.floor(Math.random() * APPS.length)];
   const shipperName = APP_SHIPPER_NAMES[Math.floor(Math.random() * APP_SHIPPER_NAMES.length)];
   const servings = 1 + Math.floor(Math.random() * 3); // 1-3 suất
   // Tái dùng logic sinh order của arrivals.js cho từng suất
   const orders = [];
   for (let i = 0; i < servings; i++) {
-    orders.push(randomCustomer().order);
+    orders.push(randomCustomer(unlockedMeats).order);
   }
   return { app, shipperName, servings, orders };
 }
