@@ -137,13 +137,13 @@
 
 ### 3.2 Đơn app + shipper
 **Chi tiết:**
-- [ ] Mở khóa ngày 2
-- [ ] Modal điện thoại: hiện đơn → Nhận/Hủy
-- [ ] Shipper: tên hài, app (PhoFood, NgonExpress...), 1-3 suất
-- [ ] Ưu tiên lên đầu hàng
-- [ ] Bom hàng: sau khi giao 6-15s mới biết
+- [x] Mở khóa ngày 2
+- [x] Modal điện thoại: hiện đơn → Nhận/Hủy
+- [x] Shipper: tên hài, app (PhoFood, NgonExpress...), 1-3 suất
+- [x] Ưu tiên lên đầu hàng
+- [x] Bom hàng: sau khi giao 6-15s mới biết
 
-**Test:** Có đơn app → nhận → làm → giao → có thể bị bom
+**Test:** Đã review + test local PASS (2026-10-05).
 
 ---
 
