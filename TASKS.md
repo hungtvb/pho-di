@@ -100,12 +100,13 @@
 **Mục tiêu:** Hệ thống kinh tế chạy đúng
 
 **Chi tiết:**
-- [ ] Giao đúng → +tiền (giá món + topping), +sao nếu ngon
-- [ ] Giao sai → 0đ, -1★
-- [ ] Khách bỏ đi → -1★
-- [ ] Đồng hồ: 6:00 → 21:00, 1h game = 18s thực
-- [ ] Hết 21h → toast "Ngày mới", reset khách, trừ chi phí
-- [ ] Sao ảnh hưởng lượng khách (công thức đã định)
+- [x] Giao đúng → +tiền (giá món + topping), +1 sao nếu ngon, -1 sao nếu thiếu nguyên liệu
+- [x] Khách bỏ đi → -1★
+- [x] Đồng hồ: 6:00 → 21:00, 1h game = 18s thực
+- [x] Hết 21h → toast "Ngày mới", reset khách, trừ 50k thuê
+- [ ] Trừ tiền nguyên liệu đã dùng trong ngày (Tony duyệt 2026-10-05)
+- [ ] Công an phạt: 30%/ngày, 20-100k, toast "🚨 Công an phạt!" (Tony duyệt 2026-10-05)
+- [x] Sao ảnh hưởng lượng khách (công thức đã định)
 
 **Test:** Bán 1 tô → tiền tăng đúng giá. Qua ngày → trừ chi phí.
 
