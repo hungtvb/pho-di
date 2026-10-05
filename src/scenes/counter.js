@@ -8,6 +8,7 @@ import { createQueue } from '../logic/queue.js';
 import { calcPrice, calcCost, formatVND, DAILY_RENT } from '../logic/economy.js';
 import { rollIncident } from '../logic/incidents.js';
 import { randomAppOrder, shouldHaveAppOrder, rollAppCancel, appCancelDelayMs } from '../logic/appOrders.js';
+import { getFeedback } from '../logic/feedback.js';
 
 // Task 2.4b: 18 giây thực = 1 giờ game; đồng hồ chạy 6:00 → 21:00
 const GAME_START_MIN = 6 * 60;   // 6:00
@@ -150,6 +151,23 @@ export function renderCounter(container, state, callbacks = {}) {
     el.hidden = false;
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { el.hidden = true; }, 2200);
+  }
+
+  // 3.3: bong bóng feedback của khách sau khi ăn (hiện 3s rồi mờ)
+  function showFeedbackBubble(name, mood, text) {
+    // Xóa bong bóng cũ nếu còn
+    container.querySelectorAll('.feedback-bubble').forEach(b => b.remove());
+    const bubble = document.createElement('div');
+    bubble.className = `feedback-bubble mood-${mood}`;
+    bubble.innerHTML = `<strong>${name}</strong><span>${text}</span>`;
+    // Đặt ở khu vực khách hàng (trên cùng)
+    const row = container.querySelector('#customer-row');
+    if (row) row.appendChild(bubble);
+    else container.appendChild(bubble);
+    // Tự xóa sau 3.5s (3s hiện + 0.5s fade)
+    setTimeout(() => {
+      if (bubble.isConnected) bubble.remove();
+    }, 3500);
   }
 
   // Task 2.4e: công an kiểm tra cuối ngày (30%/ngày). Bỏ qua nếu đã mua mặt bằng.
@@ -490,6 +508,8 @@ export function renderCounter(container, state, callbacks = {}) {
 
   // 3.1b+3.1c: hoàn tất phục vụ 1 khách
   function completeServe(target, perfect, wrongBowl) {
+    // 3.3: tính waitRatio trước khi xóa khách khỏi hàng
+    const waitRatio = target ? 1 - (target.patience / target.maxPatience) : 0;
     if (target) queue.removeById(target.id);
     cooking = false;
     cookingForId = null;
@@ -501,18 +521,32 @@ export function renderCounter(container, state, callbacks = {}) {
       state.money = (state.money || 0) + price;
       // Task 2.4d: cộng vốn nguyên liệu vào chi phí ngày
       state.dailyCost = (state.dailyCost || 0) + calcCost(target.order);
-      // "Ngon" = đủ nguyên liệu tùy chọn → +1 sao; thiếu/nhầm → -1 sao
+      // 3.3: feedback khách hàng thay cho logic +1/-1 sao cũ
+      const fb = getFeedback({ perfect, waitRatio, hadIncident: false, wrongBowl });
+      // 3.3: thống kê feedback
+      state.stats = state.stats || { happy: 0, neutral: 0, angry: 0 };
+      state.stats[fb.mood] = (state.stats[fb.mood] || 0) + 1;
+      // Áp dụng sao từ feedback
       let starMsg = '';
-      if (!wrongBowl && perfect) {
-        state.stars = (state.stars || 0) + 1;
-        starMsg = ' +1<img src="assets/icons/star.webp" class="toast-icon">';
-      } else {
-        state.stars = Math.max(0, (state.stars || 0) - 1);
-        starMsg = ` -1<img src="assets/icons/star.webp" class="toast-icon">${wrongBowl ? ' (nhầm tô)' : ' (thiếu nguyên liệu)'}`;
+      if (fb.starDelta > 0) {
+        state.stars = (state.stars || 0) + fb.starDelta;
+        starMsg = ` +${fb.starDelta}<img src="assets/icons/star.webp" class="toast-icon">`;
+      } else if (fb.starDelta < 0) {
+        state.stars = Math.max(0, (state.stars || 0) + fb.starDelta);
+        starMsg = ` ${fb.starDelta}<img src="assets/icons/star.webp" class="toast-icon">`;
       }
       updateHUD(container, state);
-      toast(`😊 ${target.name} hài lòng! +${formatVND(price)}${starMsg}`);
+      toast(`${target.name} đã nhận món! +${formatVND(price)}${starMsg}`);
+      // 3.3: hiện bong bóng feedback sau 4s
+      const fbName = target.name;
+      const fbMood = fb.mood;
+      const fbText = fb.text;
+      setTimeout(() => {
+        if (!container.isConnected) return;
+        showFeedbackBubble(fbName, fbMood, fbText);
+      }, 4000);
       // 3.2: bom hàng đơn app — 20%, biết sau 6-15s; mất vốn (đã cộng dailyCost lúc bưng)
+      // (giữ nguyên: bom hàng không trừ sao, chỉ trừ vốn)
       if (target.isAppOrder) {
         const cost = calcCost(target.order);
         setTimeout(() => {
