@@ -116,12 +116,17 @@
 ### 3.1 Giờ cao điểm + sự cố
 **Chi tiết:**
 - [ ] Peak hours (7-11h, 18-20h): arrival ×2, icon 🔥
-- [ ] logic/incidents.js: 6 loại sự cố phở
-  - Hết nước dùng, khách chê nhạt, nhầm tô, bom hàng, QR giả, shipper đổ
-- [ ] Risk tăng theo ngày: ngày 2 = 1.0, +0.1/ngày, max 1.8
-- [ ] Modal sự cố: hiện thông tin + nút xử lý
+- [ ] Chọn khách: chạm vào khách để chọn, ticket hiện tên khách đang làm
+- [ ] logic/incidents.js: 5 loại sự cố (Tony duyệt 2026-10-05)
+  - Hết nước dùng: nấu lại 30s HOẶC mua sẵn -20k
+  - Khách phàn nàn đợi lâu: ưu tiên làm trước HOẶC tặng quẩy -5k HOẶC bỏ qua -1 sao
+  - Nhầm tô: làm lại HOẶC giao luôn -1 sao
+  - Bom hàng: mất tiền nguyên liệu (không lựa chọn)
+  - Shipper đổ: mất tô + -1 sao (không lựa chọn)
+- [ ] Risk tăng theo ngày: ngày 1 = 0.3, +0.1/ngày, max 0.8
+- [ ] Modal sự cố: hiện thông tin + nút xử lý (icon tự vẽ, không emoji)
 
-**Test:** Đến giờ cao điểm → khách đông. Sự cố xảy ra → modal hiện.
+**Test:** Đến giờ cao điểm → khách đông. Sự cố xảy ra → modal hiện. Chạm khách → đổi order.
 
 ---
 
