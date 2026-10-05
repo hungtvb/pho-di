@@ -156,6 +156,7 @@ h1, h2, h3, .btn-primary {
 .btn-start {
   font-size: 1.6rem;
   padding: 1rem 3rem;
+  margin-top: 0.5rem;
   animation: btn-bounce 2s ease-in-out infinite;
 }
 .btn-start:hover { filter: brightness(1.08); }
@@ -166,7 +167,9 @@ h1, h2, h3, .btn-primary {
 .intro-version {
   margin-top: 1.2rem;
   font-size: 0.8rem;
-  color: rgba(246,238,220,0.7);
+  color: #fff8e7;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  opacity: 0.9;
 }
 /* Tên quán trên bảng hiệu */
 .signboard-name {
