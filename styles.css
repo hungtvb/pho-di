@@ -245,9 +245,9 @@ h1, h2, h3, .btn-primary {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 8px;
-  padding: 12px 10px;
+  padding: 14px 12px;
   margin: 8px 12px 0;
   background: linear-gradient(180deg, #D9A86C 0%, #C8955C 100%);
   border-radius: 20px;
