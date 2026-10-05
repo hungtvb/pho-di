@@ -12,6 +12,7 @@ import { getFeedback } from '../logic/feedback.js';
 import { BADGES, checkNewBadges, initProgressionStats, resetDailyStats, ensureDailyChallenges, checkNewChallenges } from '../logic/progression.js';
 import { MEAT_META, checkNewUnlocks, getMarketItems, PREMISES_PRICE } from '../logic/unlocks.js'; // Task 4.2: mở khóa món + nâng cấp
 import { saveGame } from '../logic/save.js'; // Task 3.5: auto-save
+import { showMinigameMenu, getMinigameBuff } from './minigames.js'; // Task 4.1: minigame chuẩn bị
 
 // Task 2.4b: 18 giây thực = 1 giờ game; đồng hồ chạy 6:00 → 21:00
 const GAME_START_MIN = 6 * 60;   // 6:00
@@ -156,6 +157,7 @@ export function renderCounter(container, state, callbacks = {}) {
       <button id="btn-badges" class="hud-mini-btn" title="Tủ huy hiệu"><img src="assets/icons/star.webp"></button>
       <button id="btn-challenges" class="hud-mini-btn" title="Thử thách hôm nay"><img src="assets/icons/bell.webp"></button>
       <button id="btn-upgrade" class="hud-mini-btn" title="Nâng cấp quán"><img src="assets/icons/money.webp"></button>
+      <button id="btn-minigame" class="hud-mini-btn" title="Chuẩn bị"><img src="assets/icons/order.webp"></button>
     </div>
     <div class="order-ticket"><span class="ticket-label">ĐƠN</span> <span id="order-text">Chờ khách...</span></div>
     <div class="customer-row" id="customer-row" hidden></div>
@@ -273,6 +275,7 @@ export function renderCounter(container, state, callbacks = {}) {
   container.querySelector('#btn-badges').addEventListener('click', () => showBadgeCase());
   container.querySelector('#btn-challenges').addEventListener('click', () => showChallengePanel());
   container.querySelector('#btn-upgrade').addEventListener('click', () => showUpgradeModal()); // Task 4.2
+  container.querySelector('#btn-minigame').addEventListener('click', () => showMinigameMenu(container, state, { toast, sfx: playSfx })); // Task 4.1
 
   state.currentStep = 0;
   state.selectedCustomerId = null; // 3.1b: khách đang được chọn (null = đầu hàng)
@@ -964,7 +967,8 @@ export function renderCounter(container, state, callbacks = {}) {
     container.querySelector('#serve-overlay').hidden = true;
     if (target) {
       // Task 2.4a+2.4c: tính tiền đúng theo giá món + topping
-      const price = calcPrice(target.order);
+      // Task 4.1: buff +5% tiền bán nếu vừa xong minigame trong ngày
+      const price = Math.round(calcPrice(target.order) * (1 + getMinigameBuff(state)));
       state.money = (state.money || 0) + price;
       // Task 2.4d: cộng vốn nguyên liệu vào chi phí ngày
       state.dailyCost = (state.dailyCost || 0) + calcCost(target.order);
