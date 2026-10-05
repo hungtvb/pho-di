@@ -1082,3 +1082,141 @@ h1, h2, h3, .btn-primary {
   pointer-events: none;
   animation: walk-out 0.6s ease-in forwards;
 }
+/* 4.6 Phase 2: ghost giữ class seated → .customer.seated (cùng specificity, viết sau)
+   ghi đè animation. Rule specificity cao hơn để walk-out thắng idle-bob-seated. */
+.customer.walkout-ghost.seated {
+  animation: walk-out-seated 0.6s ease-in forwards;
+}
+
+/* ---- Task 4.6 Phase 2: bàn ghế + khách ngồi + khu shipper ---- */
+
+/* Khu bàn ăn — luôn hiện 3 bàn (quán có bàn sẵn, tạo không khí) */
+.dining-area {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  width: calc(100% - 24px);
+  margin-top: 6px;
+}
+.table-spot {
+  flex: 1 1 0;
+  max-width: 124px;
+  position: relative;
+  min-height: 104px;
+}
+.seat-slot {
+  position: relative;
+  z-index: 2;
+}
+.seat-slot .customer {
+  margin: 0 auto;
+}
+/* Bàn + ghế vẽ bằng CSS (không cần asset mới) */
+.table-deco {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 46px;
+  z-index: 3;
+  pointer-events: none;
+}
+.table-top {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 66px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 35%, #eab268 0%, #cf9040 60%, #a96f2c 100%);
+  border: 2px solid #8a5a22;
+  box-shadow: 0 3px 0 #8a5a22;
+}
+.chair {
+  position: absolute;
+  bottom: 0;
+  width: 20px;
+  height: 16px;
+  background: #b57e3f;
+  border: 2px solid #8a5a22;
+  border-radius: 6px 6px 3px 3px;
+}
+.chair-l { left: 4px; }
+.chair-r { right: 4px; }
+
+/* Khách ngồi: nhỏ hơn (scale 0.8, bake vào keyframes vì idle-bob ghi đè transform) */
+@keyframes idle-bob-seated {
+  0%, 100% { transform: translateY(0) scale(0.8); }
+  50% { transform: translateY(-3px) scale(0.8); }
+}
+@keyframes walk-in-seated {
+  from { transform: translateX(-120px) scale(0.8); opacity: 0.2; }
+  to { transform: translateX(0) scale(0.8); opacity: 1; }
+}
+@keyframes walk-out-seated {
+  from { transform: translateX(0) scale(0.8); opacity: 1; }
+  to { transform: translateX(130px) scale(0.8); opacity: 0; }
+}
+.customer.seated {
+  animation: idle-bob-seated 2s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+.customer.seated.walking-in {
+  animation: walk-in-seated 0.8s ease-out, idle-bob-seated 2s ease-in-out 0.8s infinite;
+}
+.customer.seated.walking-out {
+  animation: walk-out-seated 0.6s ease-in forwards;
+  pointer-events: none;
+}
+
+/* Khu shipper đứng chờ lấy món */
+.shipper-zone {
+  position: relative;
+  z-index: 2;
+  width: calc(100% - 24px);
+  margin-top: 6px;
+  border: 2px dashed #c8955c;
+  border-radius: 12px;
+  background: rgba(255, 248, 235, 0.88);
+  padding: 4px 6px 8px;
+}
+.shipper-zone[hidden] { display: none; }
+.shipper-sign {
+  font-family: 'Baloo 2', cursive;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #8a5a22;
+  text-align: center;
+}
+.shipper-list {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 4px;
+}
+.shipper-list .customer {
+  max-width: 110px;
+}
+
+/* Tô phở hiện trên bàn 2s sau khi bưng (khách "ăn") */
+.eating-bowl {
+  position: absolute;
+  left: 50%;
+  top: -8px;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  pointer-events: none;
+  animation: bowl-pop 2s ease-out forwards;
+}
+@keyframes bowl-pop {
+  0% { transform: translateX(-50%) scale(0); opacity: 0; }
+  15% { transform: translateX(-50%) scale(1.15); opacity: 1; }
+  25% { transform: translateX(-50%) scale(1); }
+  75% { transform: translateX(-50%) scale(1); opacity: 1; }
+  100% { transform: translateX(-50%) scale(0.9); opacity: 0; }
+}
