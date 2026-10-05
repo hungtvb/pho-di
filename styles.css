@@ -217,7 +217,7 @@ h1, h2, h3, .btn-primary {
 }
 
 /* ---- Counter scene (task 2.1) ---- */
-#screen-counter { padding: 0; display: flex; flex-direction: column; align-items: center; position: relative; }
+#screen-counter { padding: 0; display: flex; flex-direction: column; align-items: center; position: relative; height: 100%; }
 /* Background CSS: gradient ấm, contrast thấp, màu tươi sáng */
 .counter-bg-css {
   position: absolute;
