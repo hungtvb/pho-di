@@ -1,11 +1,13 @@
 // Phở Đi! - Save/load (Task 3.5)
 // Lưu tiến trình game vào localStorage, key có version để migrate sau này.
 
+import { INITIAL_STOCK } from './economy.js';
+
 const SAVE_KEY = 'pho-di/v1';
 const CURRENT_VERSION = 1;
 
 // Những field được lưu (không lưu queue/timer/modal — khi load, queue trống)
-const SAVE_FIELDS = ['money', 'stars', 'day', 'time', 'dailyCost', 'dailyRevenue', 'stats'];
+const SAVE_FIELDS = ['money', 'stars', 'day', 'time', 'dailyCost', 'dailyRevenue', 'stats', 'inventory'];
 
 /**
  * Lưu state game vào localStorage.
@@ -101,6 +103,14 @@ export function applySave(state, data) {
     };
     for (const k of Object.keys(defaults)) {
       if (state.stats[k] === undefined) state.stats[k] = defaults[k];
+    }
+  }
+  // Kho nguyên liệu: save cũ không có → dùng tồn kho khởi đầu
+  if (!state.inventory || typeof state.inventory !== 'object') {
+    state.inventory = { ...INITIAL_STOCK };
+  } else {
+    for (const k of Object.keys(INITIAL_STOCK)) {
+      if (typeof state.inventory[k] !== 'number') state.inventory[k] = INITIAL_STOCK[k];
     }
   }
 }
