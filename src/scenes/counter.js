@@ -10,6 +10,7 @@ import { rollIncident } from '../logic/incidents.js';
 import { randomAppOrder, shouldHaveAppOrder, rollAppCancel, appCancelDelayMs } from '../logic/appOrders.js';
 import { getFeedback } from '../logic/feedback.js';
 import { BADGES, checkNewBadges, initProgressionStats, resetDailyStats, ensureDailyChallenges, checkNewChallenges } from '../logic/progression.js';
+import { saveGame } from '../logic/save.js'; // Task 3.5: auto-save
 
 // Task 2.4b: 18 giây thực = 1 giờ game; đồng hồ chạy 6:00 → 21:00
 const GAME_START_MIN = 6 * 60;   // 6:00
@@ -45,7 +46,7 @@ const STATIONS = [
 ];
 
 export function renderCounter(container, state, callbacks = {}) {
-  const { onHotspot = () => {}, onBack = () => {} } = callbacks;
+  const { onHotspot = () => {}, onBack = () => {}, paused = false } = callbacks;
 
   // Task 2.3: khách hàng — order lấy từ khách đầu hàng, không còn DEMO_ORDER
   const CUSTOMER_SPRITES = {
@@ -275,6 +276,7 @@ export function renderCounter(container, state, callbacks = {}) {
     }
     if (newBadges.length > 0 || newChallenges.length > 0) {
       updateHUD(container, state);
+      saveGame(state); // Task 3.5: lưu khi mở huy hiệu/xong thử thách
     }
   }
 
@@ -535,6 +537,7 @@ export function renderCounter(container, state, callbacks = {}) {
         }
         // Task 2.4e: công an kiểm tra (30%/ngày, bỏ qua nếu đã mua mặt bằng)
         maybePoliceCheck();
+        saveGame(state); // Task 3.5: lưu cuối ngày
         startClock(); // bắt đầu ngày mới
         scheduleArrival(2500);
         return;
@@ -925,11 +928,37 @@ export function renderCounter(container, state, callbacks = {}) {
 
   // Task 2.3: bắt đầu đón khách — khách đầu sau 2.5s, sau đó theo Poisson
   // Task 2.4b: khởi động đồng hồ game
-  updateTicket();
-  renderCustomers();
-  scheduleArrival(2500);
-  startPatienceTicker();
-  startClock();
+  // Task 3.5: nếu vào từ save (paused), chờ user bấm "Bán tiếp" mới chạy
+  function startGame() {
+    updateTicket();
+    renderCustomers();
+    scheduleArrival(2500);
+    startPatienceTicker();
+    startClock();
+  }
+
+  if (paused) {
+    updateTicket();
+    renderCustomers();
+    updateHUD(container, state);
+    const overlay = document.createElement('div');
+    overlay.className = 'resume-overlay';
+    overlay.innerHTML = `
+      <div class="resume-box">
+        <h2>Chào mừng trở lại!</h2>
+        <p class="resume-desc">Quán của bạn đang ở ngày ${state.day || 1}, lúc ${state.time || '6:00'}.</p>
+        <button id="btn-resume" class="btn-primary">Bán tiếp</button>
+      </div>
+    `;
+    container.appendChild(overlay);
+    overlay.querySelector('#btn-resume').addEventListener('click', () => {
+      playSfx('click');
+      overlay.remove();
+      startGame();
+    });
+  } else {
+    startGame();
+  }
 }
 
 export function updateHUD(container, state) {
