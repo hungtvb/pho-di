@@ -22,7 +22,7 @@ const STEP_STATIONS = {
   0: ['noi-trung'],
   1: ['to'],
   2: ['noi-nuoc'],
-  3: ['khay-thit', 'khay-ga'],
+  3: ['khay-thit', 'khay-ga', 'khay-tai', 'khay-nam'],
   4: ['khay-hanh'],
   5: ['khay-topping', 'khay-trung', 'khay-gia'],
   6: ['khay-rau'],
@@ -32,8 +32,10 @@ const STEP_STATIONS = {
 const MEAT_MAP = {
   'khay-thit': 'bo',
   'khay-ga': 'ga',
+  'khay-tai': 'tai', // Task 4.2: món mở khóa
+  'khay-nam': 'nam', // Task 4.2: món mở khóa
 };
-export const MEAT_NAMES = { bo: 'bò tái', ga: 'gà' };
+export const MEAT_NAMES = { bo: 'bò tái', ga: 'gà', tai: 'tái', nam: 'nạm' };
 
 const TOPPING_MAP = {
   'khay-topping': 'quay',
