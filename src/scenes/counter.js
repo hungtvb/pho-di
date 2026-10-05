@@ -5,7 +5,7 @@ import { playSfx } from '../audio.js';
 import { createTapflow, STEP_NAMES, MEAT_NAMES, TOPPING_NAMES, TRUNG_DURATION_MS } from '../logic/tapflow.js';
 import { randomCustomer, nextArrivalInterval, parseHour } from '../logic/arrivals.js';
 import { createQueue } from '../logic/queue.js';
-import { calcPrice, formatVND, DAILY_RENT } from '../logic/economy.js';
+import { calcPrice, calcCost, formatVND, DAILY_RENT } from '../logic/economy.js';
 
 // Task 2.4b: 18 giây thực = 1 giờ game; đồng hồ chạy 6:00 → 21:00
 const GAME_START_MIN = 6 * 60;   // 6:00
@@ -123,6 +123,90 @@ export function renderCounter(container, state, callbacks = {}) {
     el.hidden = false;
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { el.hidden = true; }, 2200);
+  }
+
+  // Task 2.4e: công an kiểm tra cuối ngày (30%/ngày). Bỏ qua nếu đã mua mặt bằng.
+  let policeModalOpen = false; // chống modal chồng lớp
+  function maybePoliceCheck() {
+    if (state.ownedPremises) return;
+    if (policeModalOpen) return; // đang mở thì bỏ qua
+    if (Math.random() >= 0.3) return;
+    policeModalOpen = true;
+    const fine = 20000 + Math.floor(Math.random() * 81) * 1000; // 20k-100k
+
+    const modal = document.createElement('div');
+    modal.className = 'name-modal';
+    modal.innerHTML = `
+      <div class="name-modal-box">
+        <h2>Công an kiểm tra!</h2>
+        <p class="name-modal-desc">Quán vỉa hè không phép. Chọn cách xử lý:</p>
+        <div class="police-choices">
+          <button class="btn-primary police-btn" data-act="pay">Nộp phạt ${formatVND(fine)}</button>
+          <button class="btn-primary police-btn" data-act="run">Dọn hàng nhanh</button>
+          <button class="btn-primary police-btn" data-act="bribe">Lót tay 30.000đ</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(modal);
+
+    const close = () => {
+      modal.remove();
+      policeModalOpen = false;
+    };
+
+    modal.querySelector('[data-act="pay"]').addEventListener('click', () => {
+      state.money = Math.max(0, (state.money || 0) - fine);
+      updateHUD(container, state);
+      playSfx('fail');
+      toast(`Đã nộp phạt ${formatVND(fine)}.`, true);
+      close();
+    });
+
+    modal.querySelector('[data-act="bribe"]').addEventListener('click', () => {
+      state.money = Math.max(0, (state.money || 0) - 30000);
+      updateHUD(container, state);
+      playSfx('success');
+      toast('Qua ải!');
+      close();
+    });
+
+    modal.querySelector('[data-act="run"]').addEventListener('click', () => {
+      // Minigame 3s: bấm "Dọn ngay!" kịp thì thoát, hết giờ phạt gấp đôi
+      const box = modal.querySelector('.name-modal-box');
+      let left = 3;
+      let done = false; // chống race: chỉ xử lý 1 lần
+      box.innerHTML = `
+        <h2>Dọn hàng nhanh!</h2>
+        <p class="name-modal-desc">Bấm nút trước khi hết giờ!</p>
+        <p class="police-countdown" id="police-countdown">${left}</p>
+        <button class="btn-primary police-btn" id="police-run-btn">Dọn ngay!</button>
+      `;
+      const countEl = box.querySelector('#police-countdown');
+      const timer = setInterval(() => {
+        left -= 1;
+        if (left <= 0) {
+          if (done) return;
+          done = true;
+          clearInterval(timer);
+          const doubleFine = fine * 2;
+          state.money = Math.max(0, (state.money || 0) - doubleFine);
+          updateHUD(container, state);
+          playSfx('fail');
+          toast(`Không kịp dọn! Phạt gấp đôi ${formatVND(doubleFine)}.`, true);
+          close();
+          return;
+        }
+        if (countEl.isConnected) countEl.textContent = left;
+      }, 1000);
+      box.querySelector('#police-run-btn').addEventListener('click', () => {
+        if (done) return;
+        done = true;
+        clearInterval(timer);
+        playSfx('success');
+        toast('Thoát! Dọn hàng kịp lúc.');
+        close();
+      });
+    });
   }
 
   function syncSteps() {
@@ -258,7 +342,10 @@ export function renderCounter(container, state, callbacks = {}) {
         clearInterval(clockTimer);
         state.day = (state.day || 1) + 1;
         state.time = '6:00';
-        state.money = Math.max(0, (state.money || 0) - DAILY_RENT);
+        // Task 2.4d: trừ tiền mặt bằng + vốn nguyên liệu đã dùng trong ngày
+        const dayCost = state.dailyCost || 0;
+        state.money = Math.max(0, (state.money || 0) - DAILY_RENT - dayCost);
+        state.dailyCost = 0;
         // Xóa hết khách đang chờ
         queue.list().forEach(c => queue.removeById(c.id));
         cooking = false;
@@ -268,8 +355,10 @@ export function renderCounter(container, state, callbacks = {}) {
         updateTicket();
         syncSteps(); // reset thanh 8 bước + ẩn nút bưng
         renderCustomers();
-        toast(`🌙 Hết ngày! Trừ tiền mặt bằng ${formatVND(DAILY_RENT)}. Ngày ${state.day} bắt đầu!`);
+        toast(`Hết ngày! Trừ mặt bằng ${formatVND(DAILY_RENT)} + vốn ${formatVND(dayCost)}. Ngày ${state.day} bắt đầu!`);
         playSfx('success');
+        // Task 2.4e: công an kiểm tra (30%/ngày, bỏ qua nếu đã mua mặt bằng)
+        maybePoliceCheck();
         startClock(); // bắt đầu ngày mới
         scheduleArrival(2500);
         return;
@@ -324,6 +413,8 @@ export function renderCounter(container, state, callbacks = {}) {
         // Task 2.4a+2.4c: tính tiền đúng theo giá món + topping
         const price = calcPrice(served.order);
         state.money = (state.money || 0) + price;
+        // Task 2.4d: cộng vốn nguyên liệu vào chi phí ngày
+        state.dailyCost = (state.dailyCost || 0) + calcCost(served.order);
         // "Ngon" = đủ nguyên liệu tùy chọn → +1 sao; thiếu → -1 sao
         let starMsg = '';
         if (r.perfect) {
