@@ -98,6 +98,8 @@ async function main() {
     dailyCost: 0, // vốn nguyên liệu đã dùng trong ngày (Task 2.4d)
     dailyRevenue: 0, // doanh thu trong ngày để tính thuế 10% cuối ngày
     inventory: { ...INITIAL_STOCK }, // tồn kho nguyên liệu
+    ownedPremises: false, // Task 4.2: đã mua mặt bằng → miễn công an
+    unlockedMeats: [], // Task 4.2: meat key món đã mở khóa (tai, nam)
     stats: {
       happy: 0, neutral: 0, angry: 0, // thống kê feedback (Task 3.3)
       // Task 3.4: huy hiệu + thử thách
