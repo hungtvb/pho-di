@@ -672,3 +672,16 @@ h1, h2, h3, .btn-primary {
   border: 3px solid #ffd700;
   box-shadow: 0 0 10px #ffd700;
 }
+
+/* 3.2: badge đơn app */
+.app-badge {
+  display: inline-block;
+  background: #ff3b30;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.5px;
+}
