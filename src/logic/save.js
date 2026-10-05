@@ -7,7 +7,7 @@ const SAVE_KEY = 'pho-di/v1';
 const CURRENT_VERSION = 1;
 
 // Những field được lưu (không lưu queue/timer/modal — khi load, queue trống)
-const SAVE_FIELDS = ['money', 'stars', 'day', 'time', 'dailyCost', 'dailyRevenue', 'stats', 'inventory', 'ownedPremises', 'unlockedMeats'];
+const SAVE_FIELDS = ['money', 'stars', 'day', 'time', 'dailyCost', 'dailyRevenue', 'stats', 'inventory', 'ownedPremises', 'unlockedMeats', 'minigameBuff', 'lastMinigame'];
 
 /**
  * Lưu state game vào localStorage.
