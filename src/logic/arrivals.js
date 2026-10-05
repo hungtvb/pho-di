@@ -45,8 +45,8 @@ export function randomCustomer() {
   };
 }
 
-function isPeakHour(hour) {
-  return (hour >= 7 && hour <= 9) || (hour >= 11 && hour <= 13) || (hour >= 17 && hour <= 19);
+export function isPeakHour(hour) {
+  return (hour >= 7 && hour < 11) || (hour >= 18 && hour < 20);
 }
 
 /**
@@ -58,7 +58,7 @@ function isPeakHour(hour) {
  */
 export function nextArrivalInterval(stars, hour) {
   let mean = Math.max(8, 26 - (stars || 0) * 2); // giây trung bình
-  if (isPeakHour(hour)) mean *= 0.6;
+  if (isPeakHour(hour)) mean *= 0.5;
   else if (hour < 6 || hour >= 21) mean *= 1.6;
   const u = Math.random();
   const sec = -Math.log(1 - u) * mean;
