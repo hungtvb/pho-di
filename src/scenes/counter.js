@@ -3,6 +3,8 @@
 
 import { playSfx } from '../audio.js';
 import { createTapflow, STEP_NAMES, MEAT_NAMES, TOPPING_NAMES, TRUNG_DURATION_MS } from '../logic/tapflow.js';
+import { randomCustomer, nextArrivalInterval, parseHour } from '../logic/arrivals.js';
+import { createQueue } from '../logic/queue.js';
 
 // 8 bước làm phở
 export const STEPS = [
@@ -34,15 +36,38 @@ const STATIONS = [
 export function renderCounter(container, state, callbacks = {}) {
   const { onHotspot = () => {}, onBack = () => {} } = callbacks;
 
-  // Task 2.2: tapflow 8 bước — order mẫu (task 2.3 sẽ có khách gọi món thật)
-  const DEMO_ORDER = { meat: 'bo', toppings: ['quay', 'trung'] };
+  // Task 2.3: khách hàng — order lấy từ khách đầu hàng, không còn DEMO_ORDER
+  const CUSTOMER_SPRITES = {
+    'ong-gia': 'assets/sprites/ong-gia-v2.webp',
+    'co-gai': 'assets/sprites/co-gai-v2.webp',
+    'shipper': 'assets/sprites/shipper-v2.webp',
+    'ba-cu': 'assets/sprites/ba-cu-v2.webp',
+  };
+  const queue = createQueue(3);
+  let cooking = false; // đang nấu cho khách đầu hàng?
+  let arrivalTimer = null;
+  let patienceTimer = null;
+  let dishGen = 0; // token chống race: tăng mỗi lần startDish
+
   const flow = createTapflow();
-  flow.startDish(DEMO_ORDER);
+  // Chưa có khách → chưa startDish; tap sẽ báo "Chưa có order nào."
 
   const orderText = () => {
     const o = flow.getState().order;
+    if (!o) return '';
     const tops = o.toppings.map(t => TOPPING_NAMES[t]).join(' + ') || 'không topping';
     return `Phở ${MEAT_NAMES[o.meat]} + ${tops}`;
+  };
+
+  const shortOrderText = (order) => {
+    const tops = order.toppings.map(t => TOPPING_NAMES[t]).join(' + ');
+    return `Phở ${MEAT_NAMES[order.meat]}${tops ? ' + ' + tops : ''}`;
+  };
+
+  const updateTicket = () => {
+    const active = cooking ? queue.peek() : null;
+    container.querySelector('#order-text').textContent =
+      active ? `${active.name}: ${orderText()}` : 'Chờ khách...';
   };
 
   container.innerHTML = `
@@ -54,7 +79,8 @@ export function renderCounter(container, state, callbacks = {}) {
       <div class="hud-item">⭐ <span id="hud-star">${state.stars || 0}</span></div>
       <div class="hud-item">📅 <span id="hud-day">Ngày ${state.day || 1}</span></div>
     </div>
-    <div class="order-ticket">🧾 <span id="order-text">${orderText()}</span></div>
+    <div class="order-ticket">🧾 <span id="order-text">Chờ khách...</span></div>
+    <div class="customer-row" id="customer-row" hidden></div>
     <div class="station-layer">
       ${STATIONS.map(s => `
         <button class="station" data-id="${s.id}">
@@ -101,12 +127,113 @@ export function renderCounter(container, state, callbacks = {}) {
     container.querySelector('#serve-overlay').hidden = step !== 7;
   }
 
+  // ---------- Task 2.3c: UI khách hàng ----------
+
+  function renderCustomers() {
+    const row = container.querySelector('#customer-row');
+    const list = queue.list();
+    const activeId = cooking && list.length ? list[0].id : null;
+    row.hidden = list.length === 0;
+    row.innerHTML = list.map(c => {
+      const pct = Math.max(0, (c.patience / c.maxPatience) * 100);
+      const cls = pct > 50 ? 'high' : pct > 25 ? 'mid' : 'low';
+      return `
+      <div class="customer${c.id === activeId ? ' serving' : ''}" data-id="${c.id}">
+        <img class="customer-avatar" src="${CUSTOMER_SPRITES[c.type]}" alt="${c.name}" draggable="false">
+        <div class="customer-name">${c.name}${c.type === 'shipper' ? ' 🛵' : ''}</div>
+        <div class="customer-order">${shortOrderText(c.order)}</div>
+        <div class="patience-bar"><div class="patience-fill ${cls}" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('');
+  }
+
+  // Cập nhật thanh kiên nhẫn (không re-render cả hàng)
+  function updatePatienceBars() {
+    for (const c of queue.list()) {
+      const fill = container.querySelector(`.customer[data-id="${c.id}"] .patience-fill`);
+      if (!fill) continue;
+      const pct = Math.max(0, (c.patience / c.maxPatience) * 100);
+      fill.style.width = pct + '%';
+      fill.classList.toggle('high', pct > 50);
+      fill.classList.toggle('mid', pct > 25 && pct <= 50);
+      fill.classList.toggle('low', pct <= 25);
+    }
+  }
+
+  // Bắt đầu nấu cho khách đầu hàng (hoặc về trạng thái chờ)
+  function startNextDish() {
+    const next = queue.peek();
+    if (next) {
+      cooking = true;
+      dishGen++; // tăng token mỗi lần bắt đầu món mới
+      flow.startDish(next.order);
+    } else {
+      cooking = false;
+      flow.clearOrder(); // tránh món ma: reset tapflow khi hết khách
+    }
+    updateTicket();
+    syncSteps();
+    // Idle (không khách): step vẫn 7 từ món cũ → ép ẩn nút bưng
+    if (!cooking) container.querySelector('#serve-overlay').hidden = true;
+    renderCustomers();
+  }
+
+  function scheduleArrival(delayMs) {
+    clearTimeout(arrivalTimer);
+    arrivalTimer = setTimeout(() => {
+      if (!container.isConnected) return;
+      if (!queue.isFull()) {
+        const c = randomCustomer();
+        queue.enqueue(c, cooking);
+        toast(`🔔 Khách mới: ${c.name}!`);
+        playSfx('pop');
+        if (!cooking) startNextDish();
+        else renderCustomers();
+      }
+      scheduleArrival(nextArrivalInterval(state.stars || 0, parseHour(state.time)));
+    }, delayMs);
+  }
+
+  function startPatienceTicker() {
+    clearInterval(patienceTimer);
+    patienceTimer = setInterval(() => {
+      if (!container.isConnected) return;
+      let leftCount = 0;
+      let activeLeft = false;
+      let activeName = '';
+      for (const c of queue.list()) {
+        c.patience -= 1;
+        if (c.patience > 0) continue;
+        const wasActive = cooking && queue.peek() && queue.peek().id === c.id;
+        queue.removeById(c.id);
+        if (wasActive) { activeLeft = true; activeName = c.name; }
+        leftCount++;
+      }
+      if (leftCount === 0) {
+        updatePatienceBars();
+        return;
+      }
+      state.stars = Math.max(0, (state.stars || 0) - leftCount);
+      updateHUD(container, state);
+      playSfx('fail');
+      if (activeLeft) {
+        // Khách đang nấu bỏ đi → hủy món dở, chuyển sang khách tiếp theo
+        toast(`😠 ${activeName} bỏ đi! Món dở bị hủy. -${leftCount}⭐`, true);
+        startNextDish();
+      } else {
+        toast(`😠 ${leftCount} khách bỏ đi! -${leftCount}⭐`, true);
+        renderCustomers();
+      }
+    }, 1000);
+  }
+
   function runTrungProgress(btn) {
     btn.classList.add('progressing');
     playSfx('pop');
+    const gen = dishGen; // capture token để phát hiện món bị reset giữa chừng
     // Lưu timeoutId để clear khi unmount; check isConnected tránh race khi bấm back
     const tid = setTimeout(() => {
-      if (!container.isConnected) return;
+      if (!container.isConnected || gen !== dishGen) return; // món đã bị reset → bỏ qua
       btn.classList.remove('progressing');
       const r = flow.completeProgress();
       toast(r.message, !r.valid);
@@ -136,14 +263,18 @@ export function renderCounter(container, state, callbacks = {}) {
     }
     playSfx(r.done ? 'coin' : 'success');
     if (r.done) {
-      // Xong 1 tô → cộng tiền demo, làm tô mới
-      state.money = (state.money || 0) + 45000;
-      updateHUD(container, state);
+      // Task 2.3: bưng xong → gán cho khách đầu hàng, khách rời đi vui vẻ
+      const served = queue.dequeue();
+      cooking = false;
+      container.querySelector('#serve-overlay').hidden = true;
+      if (served) {
+        state.money = (state.money || 0) + 45000;
+        updateHUD(container, state);
+        toast(`😊 ${served.name} hài lòng! +45.000đ`);
+      }
       setTimeout(() => {
-        flow.startDish(DEMO_ORDER);
-        container.querySelector('#order-text').textContent = orderText();
-        syncSteps();
-        toast('Order mới: ' + orderText());
+        if (!container.isConnected || cooking) return; // đã có món mới đang nấu thì bỏ qua
+        startNextDish();
       }, 1500);
     }
     syncSteps();
@@ -164,10 +295,17 @@ export function renderCounter(container, state, callbacks = {}) {
 
   container.querySelector('#btn-counter-back').addEventListener('click', () => {
     playSfx('click');
+    clearTimeout(arrivalTimer);
+    clearInterval(patienceTimer);
+    clearTimeout(toastTimer);
     onBack();
   });
 
-  toast('Order mới: ' + orderText());
+  // Task 2.3: bắt đầu đón khách — khách đầu sau 2.5s, sau đó theo Poisson
+  updateTicket();
+  renderCustomers();
+  scheduleArrival(2500);
+  startPatienceTicker();
 }
 
 export function updateHUD(container, state) {
