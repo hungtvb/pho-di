@@ -14,6 +14,8 @@ export const TOPPING_PRICES = {
 
 export const DAILY_RENT = 50000; // chi phí mặt bằng mỗi ngày
 
+export const TAX_RATE = 0.10; // thuế 10% trên doanh thu ngày
+
 export const INGREDIENT_COST = {
   bo: 20000,   // thịt bò
   ga: 15000,   // thịt gà
@@ -50,6 +52,15 @@ export function calcCost(order) {
     0
   );
   return meatCost + toppingCost;
+}
+
+/**
+ * Tính thuế trên doanh thu ngày (10%).
+ * @param {number} dailyRevenue tổng doanh thu trong ngày
+ * @returns {number} tiền thuế (đồng, làm tròn)
+ */
+export function calcTax(dailyRevenue) {
+  return Math.round((dailyRevenue || 0) * TAX_RATE);
 }
 
 /**
