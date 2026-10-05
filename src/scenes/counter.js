@@ -3,9 +3,10 @@
 
 import { playSfx } from '../audio.js';
 import { createTapflow, STEP_NAMES, MEAT_NAMES, TOPPING_NAMES, TRUNG_DURATION_MS } from '../logic/tapflow.js';
-import { randomCustomer, nextArrivalInterval, parseHour } from '../logic/arrivals.js';
+import { randomCustomer, nextArrivalInterval, parseHour, isPeakHour } from '../logic/arrivals.js';
 import { createQueue } from '../logic/queue.js';
 import { calcPrice, calcCost, formatVND, DAILY_RENT } from '../logic/economy.js';
+import { rollIncident } from '../logic/incidents.js';
 
 // Task 2.4b: 18 giây thực = 1 giờ game; đồng hồ chạy 6:00 → 21:00
 const GAME_START_MIN = 6 * 60;   // 6:00
@@ -56,6 +57,8 @@ export function renderCounter(container, state, callbacks = {}) {
   let patienceTimer = null;
   let clockTimer = null; // Task 2.4b: đồng hồ game
   let dishGen = 0; // token chống race: tăng mỗi lần startDish
+  let cookingForId = null; // 3.1b: id khách đang được nấu
+  let incidentModalOpen = false; // 3.1c: chống modal sự cố chồng lớp
 
   const flow = createTapflow();
   // Chưa có khách → chưa startDish; tap sẽ báo "Chưa có order nào."
@@ -72,8 +75,15 @@ export function renderCounter(container, state, callbacks = {}) {
     return `Phở ${MEAT_NAMES[order.meat]}${tops ? ' + ' + tops : ''}`;
   };
 
+  // 3.1b: khách mục tiêu = khách đang chọn (nếu còn trong hàng), else đầu hàng
+  const getTargetCustomer = () => {
+    const list = queue.list();
+    const sel = list.find(c => c.id === state.selectedCustomerId);
+    return sel || list[0] || null;
+  };
+
   const updateTicket = () => {
-    const active = cooking ? queue.peek() : null;
+    const active = cooking ? getTargetCustomer() : null;
     container.querySelector('#order-text').textContent =
       active ? `${active.name}: ${orderText()}` : 'Chờ khách...';
   };
@@ -86,6 +96,7 @@ export function renderCounter(container, state, callbacks = {}) {
       <div class="hud-item"><img src="assets/icons/money.webp" class="hud-icon"> <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div>
       <div class="hud-item"><img src="assets/icons/star.webp" class="hud-icon"> <span id="hud-star">${state.stars || 0}</span></div>
       <div class="hud-item"><img src="assets/icons/day.webp" class="hud-icon"> <span id="hud-day">Ngày ${state.day || 1}</span></div>
+      <span id="hud-peak" class="hud-peak" hidden>PEAK</span>
     </div>
     <div class="order-ticket">🧾 <span id="order-text">Chờ khách...</span></div>
     <div class="customer-row" id="customer-row" hidden></div>
@@ -112,7 +123,20 @@ export function renderCounter(container, state, callbacks = {}) {
     </div>
   `;
 
+  // 3.1b: chạm vào khách để chọn (toggle)
+  container.querySelector('#customer-row').addEventListener('click', (e) => {
+    const el = e.target.closest('.customer');
+    if (!el) return;
+    const id = Number(el.dataset.id);
+    state.selectedCustomerId = (state.selectedCustomerId === id) ? null : id;
+    playSfx('click');
+    renderCustomers();
+    updateTicket();
+  });
+
   state.currentStep = 0;
+  state.selectedCustomerId = null; // 3.1b: khách đang được chọn (null = đầu hàng)
+  state.wasPeak = false; // 3.1a
   syncSteps();
 
   let toastTimer = null;
@@ -225,13 +249,18 @@ export function renderCounter(container, state, callbacks = {}) {
   function renderCustomers() {
     const row = container.querySelector('#customer-row');
     const list = queue.list();
-    const activeId = cooking && list.length ? list[0].id : null;
+    // 3.1b: xóa chọn nếu khách đã rời hàng
+    if (state.selectedCustomerId != null && !list.some(c => c.id === state.selectedCustomerId)) {
+      state.selectedCustomerId = null;
+    }
+    const activeId = cooking ? cookingForId : null;
+    const selId = state.selectedCustomerId;
     row.hidden = list.length === 0;
     row.innerHTML = list.map(c => {
       const pct = Math.max(0, (c.patience / c.maxPatience) * 100);
       const cls = pct > 50 ? 'high' : pct > 25 ? 'mid' : 'low';
       return `
-      <div class="customer${c.id === activeId ? ' serving' : ''}" data-id="${c.id}">
+      <div class="customer${c.id === activeId ? ' serving' : ''}${c.id === selId ? ' selected' : ''}" data-id="${c.id}">
         <img class="customer-avatar" src="${CUSTOMER_SPRITES[c.type]}" alt="${c.name}" draggable="false">
         <div class="customer-name">${c.name}${c.type === 'shipper' ? ' 🛵' : ''}</div>
         <div class="customer-order">${shortOrderText(c.order)}</div>
@@ -253,15 +282,17 @@ export function renderCounter(container, state, callbacks = {}) {
     }
   }
 
-  // Bắt đầu nấu cho khách đầu hàng (hoặc về trạng thái chờ)
+  // Bắt đầu nấu cho khách mục tiêu (đang chọn hoặc đầu hàng)
   function startNextDish() {
-    const next = queue.peek();
+    const next = getTargetCustomer();
     if (next) {
       cooking = true;
+      cookingForId = next.id; // 3.1b
       dishGen++; // tăng token mỗi lần bắt đầu món mới
       flow.startDish(next.order);
     } else {
       cooking = false;
+      cookingForId = null;
       flow.clearOrder(); // tránh món ma: reset tapflow khi hết khách
     }
     updateTicket();
@@ -297,7 +328,7 @@ export function renderCounter(container, state, callbacks = {}) {
       for (const c of queue.list()) {
         c.patience -= 1;
         if (c.patience > 0) continue;
-        const wasActive = cooking && queue.peek() && queue.peek().id === c.id;
+        const wasActive = cooking && cookingForId === c.id;
         queue.removeById(c.id);
         if (wasActive) { activeLeft = true; activeName = c.name; }
         leftCount++;
@@ -329,6 +360,7 @@ export function renderCounter(container, state, callbacks = {}) {
       return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
     };
     let gameMin = parseMinutes(state.time);
+    let lastIncidentHour = Math.floor(gameMin / 60); // 3.1c
     const fmt = (mins) => {
       const h = Math.floor(mins / 60);
       const m = Math.floor(mins % 60);
@@ -349,6 +381,8 @@ export function renderCounter(container, state, callbacks = {}) {
         // Xóa hết khách đang chờ
         queue.list().forEach(c => queue.removeById(c.id));
         cooking = false;
+        cookingForId = null; // 3.1b
+        state.selectedCustomerId = null; // 3.1b
         dishGen++; // chống race: hủy progress trụng đang chạy dở
         flow.clearOrder();
         updateHUD(container, state);
@@ -366,6 +400,19 @@ export function renderCounter(container, state, callbacks = {}) {
       state.time = fmt(gameMin);
       const el = container.querySelector('#hud-time');
       if (el) el.textContent = state.time;
+      // 3.1a: toast khi bước vào giờ cao điểm + cập nhật badge
+      const hour = Math.floor(gameMin / 60);
+      const peak = isPeakHour(hour);
+      if (peak && !state.wasPeak) toast('Giờ cao điểm! Khách đông gấp đôi!');
+      state.wasPeak = peak;
+      const peakEl = container.querySelector('#hud-peak');
+      if (peakEl) peakEl.hidden = !peak;
+      // 3.1c: roll sự cố mỗi giờ game
+      if (hour !== lastIncidentHour) {
+        lastIncidentHour = hour;
+        const inc = rollIncident(state.day || 1);
+        if (inc) showIncidentModal(inc);
+      }
     }, 1000);
   }
 
@@ -387,6 +434,13 @@ export function renderCounter(container, state, callbacks = {}) {
   }
 
   function handleTap(hotspotId, btn) {
+    // 3.1c: hết nước dùng — chặn trạm nước trong thời gian nấu lại
+    if (hotspotId === 'noi-nuoc' && state.brothBlockedUntil && Date.now() < state.brothBlockedUntil) {
+      const s = Math.ceil((state.brothBlockedUntil - Date.now()) / 1000);
+      toast(`Đang nấu nước dùng! Chờ ${s} giây.`, true);
+      playSfx('fail');
+      return;
+    }
     const r = flow.tap(hotspotId);
     toast(r.message, !r.valid);
     if (!r.valid) {
@@ -405,35 +459,201 @@ export function renderCounter(container, state, callbacks = {}) {
     }
     playSfx(r.done ? 'coin' : 'success');
     if (r.done) {
-      // Task 2.3: bưng xong → gán cho khách đầu hàng, khách rời đi vui vẻ
-      const served = queue.dequeue();
-      cooking = false;
-      container.querySelector('#serve-overlay').hidden = true;
-      if (served) {
-        // Task 2.4a+2.4c: tính tiền đúng theo giá món + topping
-        const price = calcPrice(served.order);
-        state.money = (state.money || 0) + price;
-        // Task 2.4d: cộng vốn nguyên liệu vào chi phí ngày
-        state.dailyCost = (state.dailyCost || 0) + calcCost(served.order);
-        // "Ngon" = đủ nguyên liệu tùy chọn → +1 sao; thiếu → -1 sao
-        let starMsg = '';
-        if (r.perfect) {
-          state.stars = (state.stars || 0) + 1;
-          starMsg = ' +1<img src="assets/icons/star.webp" class="toast-icon">';
-        } else {
-          state.stars = Math.max(0, (state.stars || 0) - 1);
-          starMsg = ' -1<img src="assets/icons/star.webp" class="toast-icon"> (thiếu nguyên liệu)';
-        }
-        updateHUD(container, state);
-        toast(`😊 ${served.name} hài lòng! +${formatVND(price)}${starMsg}`);
+      // 3.1b: giao cho khách đang chọn (fallback đầu hàng)
+      const target = getTargetCustomer();
+      const dishOrder = flow.getState().order;
+      // 3.1c: nhầm tô — thịt của tô khác với thịt khách gọi
+      if (target && dishOrder && target.order.meat !== dishOrder.meat) {
+        showWrongBowlModal(target, dishOrder, r.perfect);
+        return;
       }
-      setTimeout(() => {
-        if (!container.isConnected || cooking) return; // đã có món mới đang nấu thì bỏ qua
-        startNextDish();
-      }, 1500);
+      completeServe(target, r.perfect, false);
     }
     syncSteps();
     onHotspot(hotspotId);
+  }
+
+  // 3.1b+3.1c: hoàn tất phục vụ 1 khách
+  function completeServe(target, perfect, wrongBowl) {
+    if (target) queue.removeById(target.id);
+    cooking = false;
+    cookingForId = null;
+    state.selectedCustomerId = null; // 3.1b: reset chọn sau khi giao
+    container.querySelector('#serve-overlay').hidden = true;
+    if (target) {
+      // Task 2.4a+2.4c: tính tiền đúng theo giá món + topping
+      const price = calcPrice(target.order);
+      state.money = (state.money || 0) + price;
+      // Task 2.4d: cộng vốn nguyên liệu vào chi phí ngày
+      state.dailyCost = (state.dailyCost || 0) + calcCost(target.order);
+      // "Ngon" = đủ nguyên liệu tùy chọn → +1 sao; thiếu/nhầm → -1 sao
+      let starMsg = '';
+      if (!wrongBowl && perfect) {
+        state.stars = (state.stars || 0) + 1;
+        starMsg = ' +1<img src="assets/icons/star.webp" class="toast-icon">';
+      } else {
+        state.stars = Math.max(0, (state.stars || 0) - 1);
+        starMsg = ` -1<img src="assets/icons/star.webp" class="toast-icon">${wrongBowl ? ' (nhầm tô)' : ' (thiếu nguyên liệu)'}`;
+      }
+      updateHUD(container, state);
+      toast(`😊 ${target.name} hài lòng! +${formatVND(price)}${starMsg}`);
+    }
+    setTimeout(() => {
+      if (!container.isConnected || cooking) return; // đã có món mới đang nấu thì bỏ qua
+      startNextDish();
+    }, 1500);
+  }
+
+  // 3.1c: nhầm tô — tô làm cho thịt A nhưng khách gọi thịt B
+  function showWrongBowlModal(target, dishOrder, perfect) {
+    if (incidentModalOpen || policeModalOpen) {
+      // đang có modal khác: giao luôn để không kẹt game
+      completeServe(target, perfect, true);
+      return;
+    }
+    incidentModalOpen = true;
+    const modal = document.createElement('div');
+    modal.className = 'name-modal';
+    modal.innerHTML = `
+      <div class="name-modal-box">
+        <h2>Nhầm tô!</h2>
+        <p class="name-modal-desc">Tô này là phở ${MEAT_NAMES[dishOrder.meat]}, nhưng ${target.name} gọi phở ${MEAT_NAMES[target.order.meat]}.</p>
+        <div class="police-choices">
+          <button class="btn-primary police-btn" data-act="remake">Làm lại từ đầu</button>
+          <button class="btn-primary police-btn" data-act="serve">Giao luôn (-1 sao)</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(modal);
+    const close = () => { modal.remove(); incidentModalOpen = false; };
+    modal.querySelector('[data-act="remake"]').addEventListener('click', () => {
+      flow.startDish(target.order);
+      dishGen++;
+      cookingForId = target.id;
+      syncSteps();
+      playSfx('click');
+      toast(`Làm lại tô cho ${target.name}!`);
+      close();
+    });
+    modal.querySelector('[data-act="serve"]').addEventListener('click', () => {
+      playSfx('click');
+      close();
+      completeServe(target, perfect, true);
+    });
+  }
+
+  // 3.1c: sự cố ngẫu nhiên mỗi giờ
+  function showIncidentModal(type) {
+    if (incidentModalOpen || policeModalOpen) return;
+    const nonCooking = () => queue.list().filter(c => !(cooking && c.id === cookingForId));
+    if ((type === 'impatient' || type === 'cancelled') && nonCooking().length === 0) return;
+    if (type === 'spilled' && !cooking) return;
+
+    if (type === 'cancelled') {
+      // Bom hàng: toast + trừ vốn ngay (không modal)
+      const cands = nonCooking();
+      const c = cands[Math.floor(Math.random() * cands.length)];
+      const cost = calcCost(c.order);
+      queue.removeById(c.id);
+      if (state.selectedCustomerId === c.id) state.selectedCustomerId = null;
+      state.money = Math.max(0, (state.money || 0) - cost);
+      updateHUD(container, state);
+      renderCustomers();
+      updateTicket();
+      playSfx('fail');
+      toast(`Bom hàng! ${c.name} hủy đơn. Mất vốn ${formatVND(cost)}.`, true);
+      return;
+    }
+    if (type === 'spilled') {
+      // Shipper làm đổ: mất tô đang làm, -1 sao
+      flow.clearOrder();
+      cooking = false;
+      cookingForId = null;
+      state.stars = Math.max(0, (state.stars || 0) - 1);
+      updateHUD(container, state);
+      syncSteps();
+      container.querySelector('#serve-overlay').hidden = true;
+      playSfx('fail');
+      toast('Shipper làm đổ tô đang làm! -1 sao.', true);
+      startNextDish();
+      return;
+    }
+
+    incidentModalOpen = true;
+    const modal = document.createElement('div');
+    modal.className = 'name-modal';
+    const close = () => { modal.remove(); incidentModalOpen = false; };
+
+    if (type === 'no-broth') {
+      modal.innerHTML = `
+        <div class="name-modal-box">
+          <h2>Hết nước dùng!</h2>
+          <p class="name-modal-desc">Nồi nước dùng đã cạn. Chọn cách xử lý:</p>
+          <div class="police-choices">
+            <button class="btn-primary police-btn" data-act="cook">Nấu lại (30s)</button>
+            <button class="btn-primary police-btn" data-act="buy">Mua sẵn (-20k)</button>
+          </div>
+        </div>`;
+      container.appendChild(modal);
+      modal.querySelector('[data-act="cook"]').addEventListener('click', () => {
+        state.brothBlockedUntil = Date.now() + 30000;
+        playSfx('click');
+        toast('Đang nấu nước dùng mới...');
+        close();
+        setTimeout(() => {
+          if (!container.isConnected) return;
+          state.brothBlockedUntil = 0;
+          toast('Nước dùng đã sẵn sàng!');
+          playSfx('success');
+        }, 30000);
+      });
+      modal.querySelector('[data-act="buy"]').addEventListener('click', () => {
+        state.money = Math.max(0, (state.money || 0) - 20000);
+        updateHUD(container, state);
+        playSfx('success');
+        toast('Đã mua nước dùng sẵn!');
+        close();
+      });
+    } else if (type === 'impatient') {
+      const cands = nonCooking();
+      const c = cands[Math.floor(Math.random() * cands.length)];
+      modal.innerHTML = `
+        <div class="name-modal-box">
+          <h2>Khách phàn nàn!</h2>
+          <p class="name-modal-desc">${c.name} đợi lâu quá. Chọn cách xử lý:</p>
+          <div class="police-choices">
+            <button class="btn-primary police-btn" data-act="prior">Ưu tiên phục vụ</button>
+            <button class="btn-primary police-btn" data-act="gift">Tặng quẩy (-5k)</button>
+            <button class="btn-primary police-btn" data-act="ignore">Bỏ qua</button>
+          </div>
+        </div>`;
+      container.appendChild(modal);
+      modal.querySelector('[data-act="prior"]').addEventListener('click', () => {
+        state.selectedCustomerId = c.id;
+        c.patience = Math.min(c.maxPatience, c.patience + 30);
+        renderCustomers();
+        updateTicket();
+        playSfx('success');
+        toast(`Đã ưu tiên ${c.name}!`);
+        close();
+      });
+      modal.querySelector('[data-act="gift"]').addEventListener('click', () => {
+        state.money = Math.max(0, (state.money || 0) - 5000);
+        c.patience = Math.min(c.maxPatience, c.patience + 40);
+        updateHUD(container, state);
+        renderCustomers();
+        playSfx('success');
+        toast(`Đã tặng quẩy cho ${c.name}!`);
+        close();
+      });
+      modal.querySelector('[data-act="ignore"]').addEventListener('click', () => {
+        state.stars = Math.max(0, (state.stars || 0) - 1);
+        updateHUD(container, state);
+        playSfx('fail');
+        toast(`${c.name} giận bỏ đi! -1 sao.`, true);
+        close();
+      });
+    }
   }
 
   container.querySelectorAll('.station').forEach(btn => {
@@ -475,6 +695,9 @@ export function updateHUD(container, state) {
   set('#hud-money', `${(state.money || 0).toLocaleString('vi-VN')}đ`);
   set('#hud-star', state.stars || 0);
   set('#hud-day', `Ngày ${state.day || 1}`);
+  // 3.1a: badge giờ cao điểm
+  const peakEl = container.querySelector('#hud-peak');
+  if (peakEl) peakEl.hidden = !isPeakHour(parseHour(state.time));
 
   container.querySelectorAll('.step').forEach((el, i) => {
     el.classList.toggle('active', i === (state.currentStep || 0));
