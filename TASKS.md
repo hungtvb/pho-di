@@ -149,13 +149,13 @@
 
 ### 3.3 Feedback khách hàng ⭐
 **Chi tiết:**
-- [ ] logic/feedback.js: sau giao 4s → đánh giá
-- [ ] Dựa vào: điểm món + thời gian chờ + sự cố
-- [ ] Bong bóng chat + animation mặt (cười/mếu)
-- [ ] Câu feedback theo từng trường hợp (20+ câu)
-- [ ] Ảnh hưởng sao trực tiếp
+- [x] logic/feedback.js: sau giao 4s → đánh giá
+- [x] Dựa vào: điểm món + thời gian chờ + sự cố
+- [x] Bong bóng chat + animation mặt (cười/mếu)
+- [x] Câu feedback theo từng trường hợp (20+ câu)
+- [x] Ảnh hưởng sao trực tiếp
 
-**Test:** Giao ngon → khách khen. Giao dở → khách chê + mất sao.
+**Test:** Đã review + test logic PASS (2026-10-05). 28 câu thoại, không emoji.
 
 ---
 
