@@ -16,57 +16,18 @@ export const STEPS = [
 ];
 
 // Các trạm trên quầy — mỗi trạm có sprite riêng
+// Layout: grid 3 cột, tự động đều nhau
 const STATIONS = [
-  {
-    id: 'noi-trung', label: 'Trụng bánh',
-    sprite: 'assets/sprites/banh-pho-v2.webp',
-    x: 8, y: 30, w: 22,
-  },
-  {
-    id: 'noi-nuoc', label: 'Nước dùng',
-    sprite: 'assets/sprites/noi-nuoc-dung-v2.webp',
-    x: 38, y: 28, w: 22,
-  },
-  {
-    id: 'to', label: 'Tô',
-    sprite: 'assets/sprites/to-pho-v2.webp',
-    x: 70, y: 30, w: 22,
-  },
-  {
-    id: 'khay-thit', label: 'Thịt bò',
-    sprite: 'assets/sprites/thit-bo-tai-v2.webp',
-    x: 6, y: 52, w: 22,
-  },
-  {
-    id: 'khay-ga', label: 'Thịt gà',
-    sprite: 'assets/sprites/thit-ga-v2.webp',
-    x: 30, y: 52, w: 22,
-  },
-  {
-    id: 'khay-hanh', label: 'Hành ngò',
-    sprite: 'assets/sprites/hanh-ngo-v2.webp',
-    x: 54, y: 52, w: 22,
-  },
-  {
-    id: 'khay-rau', label: 'Rau thơm',
-    sprite: 'assets/sprites/rau-thom-v2.webp',
-    x: 76, y: 52, w: 22,
-  },
-  {
-    id: 'khay-topping', label: 'Topping',
-    sprite: 'assets/sprites/quay-v2.webp',
-    x: 18, y: 70, w: 22,
-  },
-  {
-    id: 'khay-trung', label: 'Trứng',
-    sprite: 'assets/sprites/trung-chan-v2.webp',
-    x: 42, y: 70, w: 22,
-  },
-  {
-    id: 'khay-gia', label: 'Giá',
-    sprite: 'assets/sprites/gia-do-v2.webp',
-    x: 64, y: 70, w: 22,
-  },
+  { id: 'noi-trung', label: 'Trụng bánh', sprite: 'assets/sprites/banh-pho-v2.webp' },
+  { id: 'noi-nuoc', label: 'Nước dùng', sprite: 'assets/sprites/noi-nuoc-dung-v2.webp' },
+  { id: 'to', label: 'Tô', sprite: 'assets/sprites/to-pho-v2.webp' },
+  { id: 'khay-thit', label: 'Thịt bò', sprite: 'assets/sprites/thit-bo-tai-v2.webp' },
+  { id: 'khay-ga', label: 'Thịt gà', sprite: 'assets/sprites/thit-ga-v2.webp' },
+  { id: 'khay-hanh', label: 'Hành ngò', sprite: 'assets/sprites/hanh-ngo-v2.webp' },
+  { id: 'khay-rau', label: 'Rau thơm', sprite: 'assets/sprites/rau-thom-v2.webp' },
+  { id: 'khay-topping', label: 'Topping', sprite: 'assets/sprites/quay-v2.webp' },
+  { id: 'khay-trung', label: 'Trứng', sprite: 'assets/sprites/trung-chan-v2.webp' },
+  { id: 'khay-gia', label: 'Giá', sprite: 'assets/sprites/gia-do-v2.webp' },
 ];
 
 export function renderCounter(container, state, callbacks = {}) {
@@ -82,8 +43,7 @@ export function renderCounter(container, state, callbacks = {}) {
     </div>
     <div class="station-layer">
       ${STATIONS.map(s => `
-        <button class="station" data-id="${s.id}"
-          style="left:${s.x}%; top:${s.y}%; width:${s.w}%;">
+        <button class="station" data-id="${s.id}">
           <img src="${s.sprite}" alt="${s.label}" draggable="false">
           <span class="station-label">${s.label}</span>
         </button>
