@@ -10,6 +10,7 @@ import { rollIncident } from '../logic/incidents.js';
 import { randomAppOrder, shouldHaveAppOrder, rollAppCancel, appCancelDelayMs } from '../logic/appOrders.js';
 import { getFeedback } from '../logic/feedback.js';
 import { BADGES, checkNewBadges, initProgressionStats, resetDailyStats, ensureDailyChallenges, checkNewChallenges } from '../logic/progression.js';
+import { MEAT_META, checkNewUnlocks, getMarketItems, PREMISES_PRICE } from '../logic/unlocks.js'; // Task 4.2: mở khóa món + nâng cấp
 import { saveGame } from '../logic/save.js'; // Task 3.5: auto-save
 
 // Task 2.4b: 18 giây thực = 1 giờ game; đồng hồ chạy 6:00 → 21:00
@@ -30,6 +31,19 @@ export const STEPS = [
   { id: 'bung',    label: 'Bưng',    icon: 'assets/icons/steps/bung.webp' },
 ];
 
+// Task 4.2: trạm nào được hiện — trạm unlock chỉ hiện khi món đã mở khóa
+function visibleStations(unlockedMeats) {
+  const unlocked = new Set(unlockedMeats || []);
+  return STATIONS.filter(s => !s.unlockId || unlocked.has(s.unlockId));
+}
+function stationHTML(s) {
+  return `
+    <button class="station" data-id="${s.id}">
+      <img src="${s.sprite}" alt="${s.label}" draggable="false">
+      <span class="station-label">${s.label}</span>
+      <span class="progress-fill"></span>
+    </button>`;
+}
 // Các trạm trên quầy — mỗi trạm có sprite riêng
 // Layout: grid 3 cột, tự động đều nhau
 const STATIONS = [
@@ -38,6 +52,9 @@ const STATIONS = [
   { id: 'to', label: 'Tô', sprite: 'assets/sprites/to-pho-v2.webp' },
   { id: 'khay-thit', label: 'Thịt bò', sprite: 'assets/sprites/thit-bo-tai-v2.webp' },
   { id: 'khay-ga', label: 'Thịt gà', sprite: 'assets/sprites/thit-ga-v2.webp' },
+  // Task 4.2: trạm thịt món mở khóa — chỉ hiện khi đã unlock (unlockId)
+  { id: 'khay-tai', label: MEAT_META.tai.label, sprite: MEAT_META.tai.sprite, unlockId: 'tai' },
+  { id: 'khay-nam', label: MEAT_META.nam.label, sprite: MEAT_META.nam.sprite, unlockId: 'nam' },
   { id: 'khay-hanh', label: 'Hành ngò', sprite: 'assets/sprites/hanh-ngo-v2.webp' },
   { id: 'khay-rau', label: 'Rau thơm', sprite: 'assets/sprites/rau-thom-v2.webp' },
   { id: 'khay-topping', label: 'Topping', sprite: 'assets/sprites/quay-v2.webp' },
@@ -138,6 +155,7 @@ export function renderCounter(container, state, callbacks = {}) {
       <span id="hud-peak" class="hud-peak" hidden><span class="peak-flame"></span>CAO ĐIỂM</span>
       <button id="btn-badges" class="hud-mini-btn" title="Tủ huy hiệu"><img src="assets/icons/star.webp"></button>
       <button id="btn-challenges" class="hud-mini-btn" title="Thử thách hôm nay"><img src="assets/icons/bell.webp"></button>
+      <button id="btn-upgrade" class="hud-mini-btn" title="Nâng cấp quán"><img src="assets/icons/money.webp"></button>
     </div>
     <div class="order-ticket"><span class="ticket-label">ĐƠN</span> <span id="order-text">Chờ khách...</span></div>
     <div class="customer-row" id="customer-row" hidden></div>
@@ -153,13 +171,7 @@ export function renderCounter(container, state, callbacks = {}) {
       <div class="shipper-list"></div>
     </div>
     <div class="station-layer">
-      ${STATIONS.map(s => `
-        <button class="station" data-id="${s.id}">
-          <img src="${s.sprite}" alt="${s.label}" draggable="false">
-          <span class="station-label">${s.label}</span>
-          <span class="progress-fill"></span>
-        </button>
-      `).join('')}
+      ${visibleStations(state.unlockedMeats).map(stationHTML).join('')}
     </div>
     <div class="serve-overlay" id="serve-overlay" hidden>
       <button class="btn-serve" id="btn-serve"><img src="assets/icons/steps/bung.webp" style="width:24px;height:24px;vertical-align:middle;"> Bưng ra phục vụ!</button>
@@ -260,6 +272,7 @@ export function renderCounter(container, state, callbacks = {}) {
   // 3.4: nút tủ huy hiệu + thử thách trong HUD
   container.querySelector('#btn-badges').addEventListener('click', () => showBadgeCase());
   container.querySelector('#btn-challenges').addEventListener('click', () => showChallengePanel());
+  container.querySelector('#btn-upgrade').addEventListener('click', () => showUpgradeModal()); // Task 4.2
 
   state.currentStep = 0;
   state.selectedCustomerId = null; // 3.1b: khách đang được chọn (null = đầu hàng)
@@ -317,9 +330,29 @@ export function renderCounter(container, state, callbacks = {}) {
     playSfx('success');
   }
 
+  // Task 4.2: Banner món mới mở khóa (không chặn game, tự đóng sau 3.5s)
+  function showUnlockBanner(unlock) {
+    // Xóa banner cũ nếu còn
+    container.querySelectorAll('.badge-banner').forEach(b => b.remove());
+    const banner = document.createElement('div');
+    banner.className = 'badge-banner unlock-banner';
+    banner.innerHTML = `
+      <img src="assets/icons/steps/thit.webp" class="badge-banner-icon" alt="món mới">
+      <div class="badge-banner-text">
+        <strong>Món mới mở khóa: ${unlock.name}!</strong>
+        <span>Khách có thể gọi món này từ nay — giá ${formatVND(unlock.price)}</span>
+      </div>
+      <button class="badge-banner-close" aria-label="Đóng">×</button>
+    `;
+    container.appendChild(banner);
+    const close = () => { if (banner.isConnected) banner.remove(); };
+    banner.querySelector('.badge-banner-close').addEventListener('click', close);
+    setTimeout(close, 3500);
+    playSfx('success');
+  }
+
   // 3.4: Tủ trưng bày huy hiệu (modal)
-  function showBadgeCase() {
-    const stats = initProgressionStats(state.stats);
+  function showBadgeCase() {    const stats = initProgressionStats(state.stats);
     const unlocked = new Set(stats.badges);
     const modal = document.createElement('div');
     modal.className = 'name-modal';
@@ -372,6 +405,47 @@ export function renderCounter(container, state, callbacks = {}) {
     playSfx('click');
   }
 
+  // Task 4.2: Modal nâng cấp quán — mua mặt bằng (miễn công an), sau này thêm nâng cấp khác
+  function showUpgradeModal() {
+    const owned = !!state.ownedPremises;
+    const canAfford = (state.money || 0) >= PREMISES_PRICE;
+    const modal = document.createElement('div');
+    modal.className = 'name-modal';
+    modal.innerHTML = `
+      <div class="name-modal-box badge-case">
+        <h2>Nâng cấp quán</h2>
+        <p class="name-modal-desc">Mua một lần, dùng vĩnh viễn</p>
+        <div class="challenge-list">
+          <div class="challenge-item ${owned ? 'done' : ''}">
+            <div class="challenge-name">Mua mặt bằng</div>
+            <div class="challenge-reward">${formatVND(PREMISES_PRICE)}</div>
+          </div>
+          <p class="name-modal-desc">Sở hữu mặt bằng riêng — công an không kiểm tra nữa.</p>
+        </div>
+        <div class="police-choices">
+          ${owned
+            ? `<button class="btn-primary police-btn" data-act="close">Đã sở hữu</button>`
+            : `<button class="btn-primary police-btn" data-act="buy" ${canAfford ? '' : 'disabled'}>${canAfford ? 'Mua ngay' : 'Chưa đủ tiền'}</button>
+               <button class="btn-primary police-btn" data-act="close">Để sau</button>`}
+        </div>
+      </div>
+    `;
+    container.appendChild(modal);
+    modal.querySelector('[data-act="close"]').addEventListener('click', () => { modal.remove(); playSfx('click'); });
+    const buyBtn = modal.querySelector('[data-act="buy"]');
+    if (buyBtn) buyBtn.addEventListener('click', () => {
+      if ((state.money || 0) < PREMISES_PRICE) { playSfx('fail'); return; }
+      state.money = (state.money || 0) - PREMISES_PRICE;
+      state.ownedPremises = true;
+      modal.remove();
+      updateHUD(container, state);
+      saveGame(state);
+      playSfx('success');
+      toast('Đã mua mặt bằng! Từ nay không lo công an kiểm tra.');
+    });
+    playSfx('click');
+  }
+
   // 3.4: kiểm tra huy hiệu + thử thách mới sau mỗi lần bán
   function checkProgression() {
     const stats = initProgressionStats(state.stats);
@@ -396,6 +470,20 @@ export function renderCounter(container, state, callbacks = {}) {
       updateHUD(container, state);
       saveGame(state); // Task 3.5: lưu khi mở huy hiệu/xong thử thách
     }
+    // Task 4.2: món mới mở khóa (theo ngày + sao)
+    const newUnlocks = checkNewUnlocks(state.day || 1, state.stars || 0, state.unlockedMeats);
+    if (newUnlocks.length > 0) {
+      if (!Array.isArray(state.unlockedMeats)) state.unlockedMeats = [];
+      for (const u of newUnlocks) {
+        state.unlockedMeats.push(u.id);
+        state.inventory[u.id] = (state.inventory[u.id] || 0) + 5; // tặng 5 phần mở hàng khi unlock
+        showUnlockBanner(u);
+      }
+      refreshStations(); // hiện trạm thịt mới ngay
+      updateHUD(container, state);
+      saveGame(state);
+      toast(`Đã mở khóa: ${newUnlocks.map(u => u.name).join(', ')}!`);
+    }
   }
 
   // Task 2.4e: công an kiểm tra cuối ngày (30%/ngày). Bỏ qua nếu đã mua mặt bằng.
@@ -404,8 +492,8 @@ export function renderCounter(container, state, callbacks = {}) {
   function showMarketModal(daySummary, onStartDay) {
     if (marketModalOpen) { onStartDay(); return; }
     marketModalOpen = true;
-    const items = Object.keys(INITIAL_STOCK); // bo, ga, quay, trung, gia
-    const cart = { bo: 0, ga: 0, quay: 0, trung: 0, gia: 0 };
+    const items = getMarketItems(state.unlockedMeats); // Task 4.2: cơ bản + thịt món đã mở khóa
+    const cart = Object.fromEntries(items.map(k => [k, 0]));
     const modal = document.createElement('div');
     modal.className = 'name-modal';
     const renderItems = () => items.map(k => `
@@ -652,7 +740,7 @@ export function renderCounter(container, state, callbacks = {}) {
     arrivalTimer = setTimeout(() => {
       if (!container.isConnected) return;
       if (!queue.isFull()) {
-        const c = randomCustomer();
+        const c = randomCustomer(state.unlockedMeats); // Task 4.2: pool gồm món đã mở khóa
         queue.enqueue(c, cooking);
         if (c.type !== 'shipper') assignTable(c); // 4.6 Phase 2: khách thường ngồi bàn (shipper ra khu riêng)
         markJustArrived(c.id); // 4.6 Phase 1: khách đi bộ vào
@@ -788,7 +876,7 @@ export function renderCounter(container, state, callbacks = {}) {
         if (inc) showIncidentModal(inc);
         // 3.2: đơn app (mở khóa ngày 2, ~15%/giờ)
         else if (shouldHaveAppOrder(state.day || 1) && !queue.isFull()) {
-          showAppOrderModal(randomAppOrder(state.day || 1));
+          showAppOrderModal(randomAppOrder(state.day || 1, state.unlockedMeats)); // Task 4.2: đơn app cũng có món mới
         }
       }
     }, 1000);
@@ -1152,13 +1240,24 @@ export function renderCounter(container, state, callbacks = {}) {
     });
   }
 
-  container.querySelectorAll('.station').forEach(btn => {
-    btn.addEventListener('click', () => {
-      btn.classList.add('tapped');
-      setTimeout(() => btn.classList.remove('tapped'), 200);
-      handleTap(btn.dataset.id, btn);
+  // Task 4.2: bind click cho trạm — tách hàm để vẽ lại khi unlock món mới giữa ngày
+  function bindStationClicks() {
+    container.querySelectorAll('.station').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.add('tapped');
+        setTimeout(() => btn.classList.remove('tapped'), 200);
+        handleTap(btn.dataset.id, btn);
+      });
     });
-  });
+  }
+  // Task 4.2: vẽ lại lớp trạm (hiện trạm thịt mới unlock)
+  function refreshStations() {
+    const layer = container.querySelector('.station-layer');
+    if (!layer) return;
+    layer.innerHTML = visibleStations(state.unlockedMeats).map(stationHTML).join('');
+    bindStationClicks();
+  }
+  bindStationClicks();
 
   container.querySelector('#btn-serve').addEventListener('click', () => {
     handleTap('serve', null);
