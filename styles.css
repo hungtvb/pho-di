@@ -915,3 +915,87 @@ h1, h2, h3, .btn-primary {
   font-weight: bold;
   white-space: nowrap;
 }
+
+/* Kho nguyên liệu + Đi chợ */
+.stock-missing {
+  color: #d32f2f;
+  font-weight: bold;
+}
+.market-modal {
+  max-width: 340px;
+}
+.market-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0.6rem 0;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+.market-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border: 2px solid #d7a86e;
+  border-radius: 8px;
+  background: #fff8ee;
+}
+.market-item.stock-low {
+  border-color: #d32f2f;
+  background: #fdecea;
+}
+.market-name {
+  flex: 1;
+  font-weight: bold;
+  font-size: 0.85rem;
+  color: #5d3a1a;
+  text-transform: capitalize;
+}
+.market-stock {
+  font-size: 0.75rem;
+  color: #8d6e63;
+  white-space: nowrap;
+}
+.market-item.stock-low .market-stock {
+  color: #d32f2f;
+  font-weight: bold;
+}
+.market-price {
+  font-size: 0.75rem;
+  color: #2e7d32;
+  font-weight: bold;
+  white-space: nowrap;
+}
+.market-qty {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.qty-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #a83232;
+  background: #fff;
+  color: #a83232;
+  font-weight: bold;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.qty-btn:active {
+  transform: scale(0.92);
+}
+.qty-val {
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: bold;
+  color: #5d3a1a;
+}
+.market-total {
+  text-align: right;
+  font-size: 0.95rem;
+  color: #5d3a1a;
+  margin: 0.4rem 0;
+}
