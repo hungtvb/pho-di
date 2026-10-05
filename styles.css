@@ -558,3 +558,32 @@ h1, h2, h3, .btn-primary {
 .patience-fill.high { background: #6c9e4f; }
 .patience-fill.mid { background: #daa520; }
 .patience-fill.low { background: #c0392b; }
+
+/* Modal nhập tên quán */
+.name-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.name-modal-box {
+  background: #fff8e7;
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 85%;
+  max-width: 320px;
+  text-align: center;
+  border: 3px solid #8b5a2b;
+}
+.name-modal-box h2 {
+  margin: 0 0 1rem;
+  font-family: 'Baloo 2', cursive;
+  color: #8b5a2b;
+}
+.name-modal-box .name-input {
+  width: 100%;
+  margin-bottom: 1rem;
+}
