@@ -370,3 +370,91 @@ h1, h2, h3, .btn-primary {
   color: #fff;
   cursor: pointer;
 }
+
+/* ===== Task 2.2: tapflow UI ===== */
+.order-ticket {
+  position: relative;
+  z-index: 2;
+  margin-top: 6px;
+  padding: 0.35rem 0.9rem;
+  background: #fffbe8;
+  border: 2px dashed #c8955c;
+  border-radius: 10px;
+  font-family: 'Baloo 2', cursive;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--wood);
+  box-shadow: 0 2px 6px rgba(139,94,52,0.15);
+}
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: 110px;
+  transform: translateX(-50%);
+  z-index: 10;
+  max-width: 86%;
+  padding: 0.55rem 1rem;
+  background: rgba(42,26,18,0.92);
+  color: #ffe9c9;
+  border-radius: 14px;
+  font-family: 'Baloo 2', cursive;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  animation: toast-in 0.18s ease-out;
+}
+.toast.err { background: rgba(140,30,20,0.94); color: #ffe3e3; }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.station { position: relative; }
+.station .progress-fill {
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 0%; height: 8px;
+  background: linear-gradient(90deg, #f0824a, #ed6e3a);
+  border-radius: 0 4px 4px 0;
+  pointer-events: none;
+}
+.station.progressing .progress-fill {
+  animation: progress-fill 3s linear forwards;
+}
+@keyframes progress-fill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+.station.pouring img {
+  animation: pour-shake 0.9s ease-in-out;
+}
+@keyframes pour-shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-14deg) translateY(-4px); }
+  50% { transform: rotate(10deg); }
+  75% { transform: rotate(-8deg) translateY(-2px); }
+}
+.serve-overlay {
+  position: relative;
+  z-index: 2;
+  margin-top: 10px;
+}
+.serve-overlay[hidden] { display: none; }
+.btn-serve {
+  padding: 0.7rem 1.6rem;
+  font-family: 'Baloo 2', cursive;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #fff;
+  background: linear-gradient(180deg, #f0824a, #d15a28);
+  border: 3px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(209,90,40,0.45);
+  cursor: pointer;
+  animation: serve-pulse 1.2s ease-in-out infinite;
+}
+@keyframes serve-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
