@@ -196,6 +196,11 @@
 ### 4.3 Polish visual
 **Chi tiết:**
 - [ ] Animation: khói tô phở, khách cười, sao bay, tiền bay
+- [ ] Ambient: khói bốc liên tục từ nồi/tô (CSS, lặp vô hạn)
+- [ ] Khách idle bobbing (translateY ±3px)
+- [ ] Khách đến/đi: slide-in/out
+- [ ] Nút bấm feedback mạnh (scale + shadow)
+- [ ] Background intro: đèn lồng đung đưa, khói bếp
 - [ ] So sánh với Bánh cuốn từng màn hình
 - [ ] Fix mọi chỗ xấu hơn
 - [ ] Tony duyệt visual cuối
