@@ -413,18 +413,20 @@ h1, h2, h3, .btn-primary {
 .station { position: relative; }
 .station .progress-fill {
   position: absolute;
-  left: 0; bottom: 0;
-  width: 0%; height: 8px;
+  left: 8px; bottom: 6px;
+  width: calc(100% - 16px); height: 8px;
   background: linear-gradient(90deg, #f0824a, #ed6e3a);
-  border-radius: 0 4px 4px 0;
+  border-radius: 4px;
   pointer-events: none;
+  transform: scaleX(0);
+  transform-origin: left center;
 }
 .station.progressing .progress-fill {
   animation: progress-fill 3s linear forwards;
 }
 @keyframes progress-fill {
-  from { width: 0%; }
-  to { width: 100%; }
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 .station.pouring img {
   animation: pour-shake 0.9s ease-in-out;
