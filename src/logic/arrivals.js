@@ -17,12 +17,15 @@ let nextId = 1;
 
 /**
  * Sinh 1 khách ngẫu nhiên.
+ * @param {string[]} unlockedMeats - meat key món đã mở khóa (thêm vào pool). VD: ['tai']
  * @returns {{id, type, name, order: {meat, toppings[]}, bowls, patience, maxPatience}}
  */
-export function randomCustomer() {
+export function randomCustomer(unlockedMeats) {
   const type = TYPES[Math.floor(Math.random() * TYPES.length)];
   const names = NAMES[type];
-  const meat = MEATS[Math.floor(Math.random() * MEATS.length)];
+  // Task 4.2: món mở khóa được thêm vào pool order
+  const meats = [...MEATS, ...((unlockedMeats || []).filter(m => !MEATS.includes(m)))];
+  const meat = meats[Math.floor(Math.random() * meats.length)];
 
   // 0-2 topping ngẫu nhiên
   const nTop = Math.floor(Math.random() * 3);
