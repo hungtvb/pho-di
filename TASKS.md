@@ -220,6 +220,19 @@
 
 ---
 
+### 4.6 Không gian quán sống động (mới 2026-10-05)
+**Chi tiết:**
+- [ ] Phase 1: Phố đi bộ + người qua lại (ambient, CSS walk-by loop)
+- [ ] Phase 1: Khách walk-in từ mép màn hình vào hàng đợi (thay xuất hiện đột ngột)
+- [ ] Phase 1: Khách walk-out khi xong/bỏ đi
+- [ ] Phase 2: Bàn ghế chibi (3-4 bộ), khách ngồi thay vì đứng xếp hàng
+- [ ] Phase 2: Khách ăn tại quán: vào → ngồi → gọi món → ăn → ra về
+- [ ] Phase 2: Khu vực shipper đứng chờ riêng (không ngồi), nhận đơn app → đi giao
+
+**Test:** Quán có người ra vào liên tục, không gian sống động
+
+---
+
 ### 4.5 Polish màn intro (tổng hợp review 2026-10-05)
 **Nguồn:** Tony review ảnh chụp màn intro, liệt kê 7 lỗi UI/UX + 5 cải thiện + 4 performance
 
