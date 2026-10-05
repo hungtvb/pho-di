@@ -22,14 +22,7 @@ export function renderIntro(container, onStart) {
     <div class="intro-content">
       <div class="intro-logo"><img src="assets/logo-pho.webp" alt="Phở Đi!" style="width:100px;height:100px;object-fit:contain;"></div>
       <h1 class="intro-title">Phở Đi!</h1>
-      ${savedName
-        ? `<p class="intro-shop">Quán <strong>${escapeHtml(savedName)}</strong></p>`
-        : `<div class="name-input-wrap">
-             <input id="input-shop-name" class="name-input" type="text"
-               placeholder="Nhập tên quán của bạn..." maxlength="20"
-               value="" autocomplete="off">
-           </div>`
-      }
+      ${savedName ? `<p class="intro-shop">Quán <strong>${escapeHtml(savedName)}</strong></p>` : ''}
       <button id="btn-start" class="btn-primary btn-start">Bắt đầu chơi</button>
       <div class="audio-toggles">
         <button id="btn-music" class="toggle-btn" title="Nhạc nền"><img src="${s.music ? 'assets/icons/music-on.webp' : 'assets/icons/music-off.webp'}" class="toggle-icon"></button>
@@ -39,21 +32,51 @@ export function renderIntro(container, onStart) {
     </div>
   `;
 
-  const input = container.querySelector('#input-shop-name');
-  const signboard = container.querySelector('#signboard-name');
-
-  // Live preview tên lên bảng hiệu khi gõ
-  if (input) {
-    input.addEventListener('input', () => {
-      signboard.textContent = input.value;
+  // Modal nhập tên quán nếu chưa có
+  if (!savedName) {
+    const modal = document.createElement('div');
+    modal.className = 'name-modal';
+    modal.innerHTML = `
+      <div class="name-modal-box">
+        <h2>Đặt tên quán</h2>
+        <input id="modal-shop-name" class="name-input" type="text"
+          placeholder="Nhập tên quán của bạn..." maxlength="20" autocomplete="off">
+        <button id="modal-confirm" class="btn-primary">Xác nhận</button>
+      </div>
+    `;
+    container.appendChild(modal);
+    const modalInput = modal.querySelector('#modal-shop-name');
+    const signboard = container.querySelector('#signboard-name');
+    modalInput.addEventListener('input', () => {
+      signboard.textContent = modalInput.value;
     });
+    modal.querySelector('#modal-confirm').addEventListener('click', () => {
+      const name = modalInput.value.trim();
+      if (name) {
+        setShopName(name);
+        modal.remove();
+        // Cập nhật hiển thị tên
+        const shopEl = container.querySelector('.intro-shop');
+        if (shopEl) shopEl.innerHTML = `Quán <strong>${escapeHtml(name)}</strong>`;
+        else {
+          const p = document.createElement('p');
+          p.className = 'intro-shop';
+          p.innerHTML = `Quán <strong>${escapeHtml(name)}</strong>`;
+          container.querySelector('.intro-title').after(p);
+        }
+      }
+      playSfx('click');
+    });
+    // Focus vào input
+    setTimeout(() => modalInput.focus(), 100);
   }
 
+  const signboard = container.querySelector('#signboard-name');
+
   container.querySelector('#btn-start').addEventListener('click', () => {
-    const name = input ? input.value.trim() : savedName;
-    if (name) setShopName(name);
+    const name = savedName || getShopName();
     playSfx('click');
-    onStart(name || savedName);
+    onStart(name);
   });
 
   const btnMusic = container.querySelector('#btn-music');
