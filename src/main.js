@@ -5,6 +5,7 @@ import { renderIntro } from './scenes/intro.js';
 import { renderCounter } from './scenes/counter.js';
 import { unlockAudio, playMusic, playSfx, toggleMusic, toggleSfx, getSettings } from './audio.js';
 import { saveGame, loadGame, clearSave, hasSave, applySave } from './logic/save.js'; // Task 3.5
+import { INITIAL_STOCK } from './logic/economy.js'; // Kho nguyên liệu
 
 const VERSION = '0.1.0';
 
@@ -96,6 +97,7 @@ async function main() {
     currentStep: 0,
     dailyCost: 0, // vốn nguyên liệu đã dùng trong ngày (Task 2.4d)
     dailyRevenue: 0, // doanh thu trong ngày để tính thuế 10% cuối ngày
+    inventory: { ...INITIAL_STOCK }, // tồn kho nguyên liệu
     stats: {
       happy: 0, neutral: 0, angry: 0, // thống kê feedback (Task 3.3)
       // Task 3.4: huy hiệu + thử thách
