@@ -94,6 +94,7 @@ async function main() {
     time: '6:00',
     currentStep: 0,
     dailyCost: 0, // vốn nguyên liệu đã dùng trong ngày (Task 2.4d)
+    stats: { happy: 0, neutral: 0, angry: 0 }, // thống kê feedback (Task 3.3)
   };
 
   renderIntro(introEl, async () => {
