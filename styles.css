@@ -262,32 +262,17 @@ h1, h2, h3, .btn-primary {
   background: rgba(255,255,255,0.92);
   border: 2px solid rgba(255,255,255,0.95);
   border-radius: 14px;
-  padding: 6px 4px 4px;
+  padding: 6px 4px 6px;
   cursor: pointer;
   box-shadow: 0 3px 8px rgba(139,94,52,0.2);
   transition: transform 0.1s ease, box-shadow 0.15s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
-  aspect-ratio: 1;
   min-height: 0;
-  overflow: hidden;
-}
-.station {
-  background: rgba(255,255,255,0.92);
-  border: 3px solid rgba(255,255,255,0.95);
-  border-radius: 18px;
-  padding: 8px 6px 6px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(139,94,52,0.2);
-  transition: transform 0.1s ease, box-shadow 0.15s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  aspect-ratio: 0.92;
 }
 .station img {
-  width: 100%;
+  width: 88%;
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
@@ -299,10 +284,10 @@ h1, h2, h3, .btn-primary {
   font-size: 0.65rem;
   font-weight: 700;
   color: var(--wood);
-  margin-top: 1px;
+  margin-top: 2px;
   pointer-events: none;
   white-space: nowrap;
-  line-height: 1.1;
+  line-height: 1.3;
 }
 .station:active, .station.tapped {
   transform: scale(0.93);
@@ -362,7 +347,7 @@ h1, h2, h3, .btn-primary {
 .step.done .step-icon { filter: grayscale(0.3); }
 .btn-back {
   position: absolute;
-  top: 3.2rem;
+  top: 0.5rem;
   left: 0.6rem;
   z-index: 3;
   width: 44px;
