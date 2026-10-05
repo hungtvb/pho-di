@@ -211,5 +211,11 @@ export function createTapflow() {
     return { valid: true, message: `Xong "${STEP_NAMES[finishedStep]}"!`, state: snapshot() };
   }
 
-  return { startDish, tap, completeProgress, getState: snapshot, STEP_NAMES };
+  return { startDish, tap, completeProgress, getState: snapshot, STEP_NAMES,
+    // Reset khi không còn khách (tránh món ma)
+    clearOrder() {
+      state = { step: 0, order: null, dish: freshDish(), done: false, busy: false };
+      return snapshot();
+    },
+  };
 }
