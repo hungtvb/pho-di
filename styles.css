@@ -460,3 +460,66 @@ h1, h2, h3, .btn-primary {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.06); }
 }
+
+/* Task 2.3c: hàng khách chờ */
+.customer-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  width: calc(100% - 24px);
+  margin-top: 6px;
+}
+.customer-row[hidden] { display: none; }
+.customer {
+  flex: 1 1 0;
+  max-width: 124px;
+  background: rgba(255,255,255,0.94);
+  border: 2px solid #c8955c;
+  border-radius: 12px;
+  padding: 4px 4px 6px;
+  text-align: center;
+  font-family: 'Baloo 2', cursive;
+  box-shadow: 0 2px 6px rgba(139,94,52,0.15);
+}
+.customer.serving {
+  border-color: #ed6e3a;
+  box-shadow: 0 0 0 2px rgba(237,110,58,0.35);
+}
+.customer-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  pointer-events: none;
+}
+.customer-name {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--wood);
+  line-height: 1.2;
+}
+.customer-order {
+  font-size: 0.6rem;
+  color: #8b5e34;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.patience-bar {
+  height: 6px;
+  background: #e8dcc8;
+  border-radius: 3px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+.patience-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s linear, background-color 0.5s;
+}
+.patience-fill.high { background: #6c9e4f; }
+.patience-fill.mid { background: #daa520; }
+.patience-fill.low { background: #c0392b; }
