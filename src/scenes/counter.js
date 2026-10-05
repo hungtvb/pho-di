@@ -5,7 +5,7 @@ import { playSfx } from '../audio.js';
 import { createTapflow, STEP_NAMES, MEAT_NAMES, TOPPING_NAMES, TRUNG_DURATION_MS } from '../logic/tapflow.js';
 import { randomCustomer, nextArrivalInterval, parseHour, isPeakHour } from '../logic/arrivals.js';
 import { createQueue } from '../logic/queue.js';
-import { calcPrice, calcCost, calcTax, formatVND, DAILY_RENT } from '../logic/economy.js';
+import { calcPrice, calcCost, calcTax, formatVND, DAILY_RENT, INITIAL_STOCK, INGREDIENT_NAMES, INGREDIENT_COST, canMakeOrder, consumeOrder } from '../logic/economy.js';
 import { rollIncident } from '../logic/incidents.js';
 import { randomAppOrder, shouldHaveAppOrder, rollAppCancel, appCancelDelayMs } from '../logic/appOrders.js';
 import { getFeedback } from '../logic/feedback.js';
@@ -90,8 +90,19 @@ export function renderCounter(container, state, callbacks = {}) {
 
   const updateTicket = () => {
     const active = cooking ? getTargetCustomer() : null;
-    container.querySelector('#order-text').textContent =
-      active ? `${active.name}: ${orderText()}` : 'Chờ khách...';
+    const el = container.querySelector('#order-text');
+    if (!active) {
+      el.textContent = 'Chờ khách...';
+      return;
+    }
+    // Kho: highlight đỏ nguyên liệu đang thiếu
+    const stock = canMakeOrder(active.order, state.inventory);
+    if (!stock.ok) {
+      const names = stock.missing.map(m => INGREDIENT_NAMES[m] || m).join(', ');
+      el.innerHTML = `${active.name}: ${orderText()} <span class="stock-missing">(hết ${names})</span>`;
+    } else {
+      el.textContent = `${active.name}: ${orderText()}`;
+    }
   };
 
   container.innerHTML = `
@@ -281,6 +292,82 @@ export function renderCounter(container, state, callbacks = {}) {
   }
 
   // Task 2.4e: công an kiểm tra cuối ngày (30%/ngày). Bỏ qua nếu đã mua mặt bằng.
+  let marketModalOpen = false; // chống mở chợ 2 lần
+  // Đi chợ đầu ngày: mua nguyên liệu bổ sung kho, rồi mới bắt đầu ngày mới
+  function showMarketModal(daySummary, onStartDay) {
+    if (marketModalOpen) { onStartDay(); return; }
+    marketModalOpen = true;
+    const items = Object.keys(INITIAL_STOCK); // bo, ga, quay, trung, gia
+    const cart = { bo: 0, ga: 0, quay: 0, trung: 0, gia: 0 };
+    const modal = document.createElement('div');
+    modal.className = 'name-modal';
+    const renderItems = () => items.map(k => `
+      <div class="market-item${(state.inventory[k] || 0) < 3 ? ' stock-low' : ''}">
+        <span class="market-name">${INGREDIENT_NAMES[k]}</span>
+        <span class="market-stock">Kho: ${state.inventory[k] || 0}</span>
+        <span class="market-price">${formatVND(INGREDIENT_COST[k])}</span>
+        <div class="market-qty">
+          <button class="qty-btn" data-k="${k}" data-d="-1">-</button>
+          <span class="qty-val">${cart[k]}</span>
+          <button class="qty-btn" data-k="${k}" data-d="1">+</button>
+        </div>
+      </div>`).join('');
+    const cartTotal = () => items.reduce((s, k) => s + cart[k] * INGREDIENT_COST[k], 0);
+    modal.innerHTML = `
+      <div class="name-modal-box market-modal">
+        <h2>Đi chợ — Ngày ${state.day}</h2>
+        <p class="name-modal-desc">${daySummary}</p>
+        <p class="name-modal-desc">Tiền hiện có: <strong id="market-money">${formatVND(state.money)}</strong></p>
+        <div class="market-list"></div>
+        <p class="market-total">Tổng: <strong id="market-total">${formatVND(0)}</strong></p>
+        <div class="police-choices">
+          <button class="btn-primary police-btn" id="market-buy">Mua</button>
+          <button class="btn-primary police-btn" id="market-start">Bắt đầu ngày</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(modal);
+    const refresh = () => {
+      modal.querySelector('.market-list').innerHTML = renderItems();
+      modal.querySelector('#market-total').textContent = formatVND(cartTotal());
+      modal.querySelector('#market-money').textContent = formatVND(state.money);
+    };
+    refresh();
+    const close = () => { modal.remove(); marketModalOpen = false; };
+    // Event delegation cho nút +/- (list re-render mỗi lần refresh)
+    modal.addEventListener('click', (e) => {
+      const qbtn = e.target.closest('.qty-btn');
+      if (qbtn) {
+        playSfx('click');
+        const k = qbtn.dataset.k;
+        cart[k] = Math.max(0, cart[k] + Number(qbtn.dataset.d));
+        refresh();
+        return;
+      }
+      if (e.target.closest('#market-buy')) {
+        const total = cartTotal();
+        if (total <= 0) { toast('Chưa chọn nguyên liệu nào.'); return; }
+        if (total > (state.money || 0)) {
+          playSfx('fail');
+          toast(`Không đủ tiền! Cần ${formatVND(total)}.`, true);
+          return;
+        }
+        state.money = (state.money || 0) - total;
+        items.forEach(k => { state.inventory[k] = (state.inventory[k] || 0) + cart[k]; cart[k] = 0; });
+        updateHUD(container, state);
+        playSfx('success');
+        toast(`Đã nhập hàng ${formatVND(total)}.`);
+        refresh();
+        return;
+      }
+      if (e.target.closest('#market-start')) {
+        playSfx('click');
+        close();
+        onStartDay();
+      }
+    });
+  }
+
   let policeModalOpen = false; // chống modal chồng lớp
   function maybePoliceCheck() {
     if (state.ownedPremises) return;
@@ -529,21 +616,27 @@ export function renderCounter(container, state, callbacks = {}) {
         updateTicket();
         syncSteps(); // reset thanh 8 bước + ẩn nút bưng
         renderCustomers();
-        toast(`Hết ngày! Trừ mặt bằng ${formatVND(DAILY_RENT)} + vốn ${formatVND(dayCost)} + thuế (10%) ${formatVND(dayTax)}. Ngày ${state.day} bắt đầu!`);
         playSfx('success');
-        // Task 3.2: mở khóa đơn app từ ngày 2
-        if (state.day === 2) {
-          setTimeout(() => {
-            if (!container.isConnected) return;
-            playSfx('pop');
-            toast(`<img src="assets/icons/bell.webp" class="toast-icon"> Đã mở khóa đơn app!`);
-          }, 2000);
-        }
-        // Task 2.4e: công an kiểm tra (30%/ngày, bỏ qua nếu đã mua mặt bằng)
-        maybePoliceCheck();
+        clearTimeout(arrivalTimer); // dừng đón khách trong lúc đi chợ
         saveGame(state); // Task 3.5: lưu cuối ngày
-        startClock(); // bắt đầu ngày mới
-        scheduleArrival(2500);
+        // Đi chợ: mua nguyên liệu bổ sung kho trước khi bắt đầu ngày mới
+        const daySummary = `Hết ngày! Trừ mặt bằng ${formatVND(DAILY_RENT)} + vốn ${formatVND(dayCost)} + thuế (10%) ${formatVND(dayTax)}.`;
+        showMarketModal(daySummary, () => {
+          toast(`${daySummary} Ngày ${state.day} bắt đầu!`);
+          // Task 3.2: mở khóa đơn app từ ngày 2
+          if (state.day === 2) {
+            setTimeout(() => {
+              if (!container.isConnected) return;
+              playSfx('pop');
+              toast(`<img src="assets/icons/bell.webp" class="toast-icon"> Đã mở khóa đơn app!`);
+            }, 2000);
+          }
+          // Task 2.4e: công an kiểm tra (30%/ngày, bỏ qua nếu đã mua mặt bằng)
+          maybePoliceCheck();
+          saveGame(state); // lưu sau khi đi chợ
+          startClock(); // bắt đầu ngày mới
+          scheduleArrival(2500);
+        });
         return;
       }
       state.time = fmt(gameMin);
@@ -628,6 +721,17 @@ export function renderCounter(container, state, callbacks = {}) {
 
   // 3.1b+3.1c: hoàn tất phục vụ 1 khách
   function completeServe(target, perfect, wrongBowl) {
+    // Kho nguyên liệu: hết hàng thì không cho bưng
+    if (target && target.order) {
+      const stock = canMakeOrder(target.order, state.inventory);
+      if (!stock.ok) {
+        playSfx('fail');
+        const names = stock.missing.map(m => INGREDIENT_NAMES[m] || m).join(', ');
+        toast(`Hết ${names}! Đi chợ bổ sung nguyên liệu.`, true);
+        return;
+      }
+      consumeOrder(target.order, state.inventory);
+    }
     // 3.3: tính waitRatio trước khi xóa khách khỏi hàng
     const waitRatio = target ? 1 - (target.patience / target.maxPatience) : 0;
     if (target) queue.removeById(target.id);
