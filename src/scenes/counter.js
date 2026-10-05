@@ -118,7 +118,7 @@ export function renderCounter(container, state, callbacks = {}) {
   let toastTimer = null;
   function toast(msg, isErr) {
     const el = container.querySelector('#toast');
-    el.textContent = msg;
+    el.innerHTML = msg;
     el.classList.toggle('err', !!isErr);
     el.hidden = false;
     clearTimeout(toastTimer);
@@ -194,7 +194,7 @@ export function renderCounter(container, state, callbacks = {}) {
       if (!queue.isFull()) {
         const c = randomCustomer();
         queue.enqueue(c, cooking);
-        toast(`🔔 Khách mới: ${c.name}!`);
+        toast(`<img src="assets/icons/sound-on.webp" class="toast-icon"> Khách mới: ${c.name}!`);
         playSfx('pop');
         if (!cooking) startNextDish();
         else renderCustomers();
