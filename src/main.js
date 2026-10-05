@@ -100,6 +100,8 @@ async function main() {
     inventory: { ...INITIAL_STOCK }, // tồn kho nguyên liệu
     ownedPremises: false, // Task 4.2: đã mua mặt bằng → miễn công an
     unlockedMeats: [], // Task 4.2: meat key món đã mở khóa (tai, nam)
+    minigameBuff: null, // Task 4.1: { day, pct } buff +5% tiền bán trong ngày
+    lastMinigame: null, // Task 4.1: { id, day } lần chơi minigame gần nhất
     stats: {
       happy: 0, neutral: 0, angry: 0, // thống kê feedback (Task 3.3)
       // Task 3.4: huy hiệu + thử thách
