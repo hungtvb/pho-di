@@ -5,7 +5,7 @@ import { playSfx } from '../audio.js';
 import { createTapflow, STEP_NAMES, MEAT_NAMES, TOPPING_NAMES, TRUNG_DURATION_MS } from '../logic/tapflow.js';
 import { randomCustomer, nextArrivalInterval, parseHour, isPeakHour } from '../logic/arrivals.js';
 import { createQueue } from '../logic/queue.js';
-import { calcPrice, calcCost, formatVND, DAILY_RENT } from '../logic/economy.js';
+import { calcPrice, calcCost, calcTax, formatVND, DAILY_RENT } from '../logic/economy.js';
 import { rollIncident } from '../logic/incidents.js';
 import { randomAppOrder, shouldHaveAppOrder, rollAppCancel, appCancelDelayMs } from '../logic/appOrders.js';
 import { getFeedback } from '../logic/feedback.js';
@@ -508,9 +508,13 @@ export function renderCounter(container, state, callbacks = {}) {
         state.day = (state.day || 1) + 1;
         state.time = '6:00';
         // Task 2.4d: trừ tiền mặt bằng + vốn nguyên liệu đã dùng trong ngày
+        // Thuế 10%: tính trên tổng doanh thu ngày
         const dayCost = state.dailyCost || 0;
-        state.money = Math.max(0, (state.money || 0) - DAILY_RENT - dayCost);
+        const dayRevenue = state.dailyRevenue || 0;
+        const dayTax = calcTax(dayRevenue);
+        state.money = Math.max(0, (state.money || 0) - DAILY_RENT - dayCost - dayTax);
         state.dailyCost = 0;
+        state.dailyRevenue = 0;
         // 3.4: reset stats ngày, tăng số ngày đã chơi
         resetDailyStats(initProgressionStats(state.stats));
         state.stats.daysPlayed++;
@@ -525,7 +529,7 @@ export function renderCounter(container, state, callbacks = {}) {
         updateTicket();
         syncSteps(); // reset thanh 8 bước + ẩn nút bưng
         renderCustomers();
-        toast(`Hết ngày! Trừ mặt bằng ${formatVND(DAILY_RENT)} + vốn ${formatVND(dayCost)}. Ngày ${state.day} bắt đầu!`);
+        toast(`Hết ngày! Trừ mặt bằng ${formatVND(DAILY_RENT)} + vốn ${formatVND(dayCost)} + thuế (10%) ${formatVND(dayTax)}. Ngày ${state.day} bắt đầu!`);
         playSfx('success');
         // Task 3.2: mở khóa đơn app từ ngày 2
         if (state.day === 2) {
@@ -637,6 +641,8 @@ export function renderCounter(container, state, callbacks = {}) {
       state.money = (state.money || 0) + price;
       // Task 2.4d: cộng vốn nguyên liệu vào chi phí ngày
       state.dailyCost = (state.dailyCost || 0) + calcCost(target.order);
+      // Thuế 10%: cộng doanh thu ngày để tính thuế cuối ngày
+      state.dailyRevenue = (state.dailyRevenue || 0) + price;
       // 3.3: feedback khách hàng thay cho logic +1/-1 sao cũ
       const fb = getFeedback({ perfect, waitRatio, hadIncident: false, wrongBowl });
       // 3.3: thống kê feedback
