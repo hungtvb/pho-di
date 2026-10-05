@@ -731,3 +731,153 @@ h1, h2, h3, .btn-primary {
   100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
 }
 #customer-row { position: relative; }
+
+/* ===== Task 3.4: Huy hiệu + Thử thách ===== */
+
+/* Nút mini trong HUD */
+.hud-mini-btn {
+  background: rgba(255,255,255,0.85);
+  border: 2px solid #8d5a2b;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.hud-mini-btn img {
+  width: 22px;
+  height: 22px;
+}
+.hud-mini-btn:active {
+  transform: scale(0.92);
+}
+
+/* Banner huy hiệu mới (không chặn game) */
+.badge-banner {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, #fff8e1, #ffecb3);
+  border: 3px solid #f9a825;
+  border-radius: 16px;
+  padding: 0.6rem 0.9rem;
+  max-width: 92%;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  animation: badge-slide-in 0.4s ease;
+}
+@keyframes badge-slide-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-16px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.badge-banner-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+.badge-banner-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: #5d4037;
+}
+.badge-banner-text strong {
+  font-family: 'Baloo 2', cursive;
+  color: #e65100;
+  font-size: 0.95rem;
+}
+.badge-banner-close {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  color: #8d5a2b;
+  cursor: pointer;
+  padding: 0 0.2rem;
+  line-height: 1;
+}
+
+/* Tủ huy hiệu */
+.badge-case {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+  margin: 0.8rem 0;
+}
+.badge-item {
+  border: 2px solid #d7ccc8;
+  border-radius: 12px;
+  padding: 0.6rem;
+  text-align: center;
+  background: #fafafa;
+}
+.badge-item.unlocked {
+  border-color: #f9a825;
+  background: #fff8e1;
+}
+.badge-item.locked {
+  opacity: 0.55;
+  filter: grayscale(0.7);
+}
+.badge-item-icon {
+  width: 36px;
+  height: 36px;
+}
+.badge-item-name {
+  font-family: 'Baloo 2', cursive;
+  font-size: 0.9rem;
+  color: #4e342e;
+}
+.badge-item-desc {
+  font-size: 0.75rem;
+  color: #6d4c41;
+}
+.badge-item-reward {
+  font-size: 0.75rem;
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+/* Panel thử thách */
+.challenge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.8rem 0;
+}
+.challenge-item {
+  border: 2px solid #a5d6a7;
+  border-radius: 12px;
+  padding: 0.6rem 0.8rem;
+  background: #f1f8e9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+.challenge-item.done {
+  border-color: #66bb6a;
+  background: #e8f5e9;
+}
+.challenge-name {
+  font-size: 0.85rem;
+  color: #33691e;
+  font-weight: 500;
+}
+.challenge-reward {
+  font-size: 0.75rem;
+  color: #2e7d32;
+  font-weight: bold;
+  white-space: nowrap;
+}
