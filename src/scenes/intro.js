@@ -11,9 +11,16 @@ export function setShopName(name) {
   localStorage.setItem(LS_SHOP_NAME, name.trim());
 }
 
-export function renderIntro(container, onStart) {
+export function renderIntro(container, onStart, opts = {}) {
+  const { hasSave = false } = opts;
   const s = getSettings();
   const savedName = getShopName();
+
+  // Task 3.5: nếu có save → 2 nút "Bán tiếp" + "Chơi mới"
+  const startButtons = hasSave
+    ? `<button id="btn-continue" class="btn-primary btn-start">Bán tiếp</button>
+       <button id="btn-new" class="btn-secondary btn-start-new">Chơi mới</button>`
+    : `<button id="btn-start" class="btn-primary btn-start">Bắt đầu chơi</button>`;
 
   container.innerHTML = `
     <div class="intro-bg" style="background-image: url('${BG_URL}')"></div>
@@ -22,7 +29,7 @@ export function renderIntro(container, onStart) {
     <div class="intro-content">
       <div class="intro-logo"><img src="assets/logo-pho.webp" alt="Phở Đi!" style="width:100px;height:100px;object-fit:contain;"></div>
       <h1 class="intro-title">Phở Đi!</h1>
-      <button id="btn-start" class="btn-primary btn-start">Bắt đầu chơi</button>
+      ${startButtons}
       <div class="audio-toggles">
         <button id="btn-music" class="toggle-btn" title="Nhạc nền"><img src="${s.music ? 'assets/icons/music-on.webp' : 'assets/icons/music-off.webp'}" class="toggle-icon"></button>
         <button id="btn-sfx" class="toggle-btn" title="Âm thanh"><img src="${s.sfx ? 'assets/icons/sound-on.webp' : 'assets/icons/sound-off.webp'}" class="toggle-icon"></button>
@@ -64,11 +71,28 @@ export function renderIntro(container, onStart) {
 
   const signboard = container.querySelector('#signboard-name');
 
-  container.querySelector('#btn-start').addEventListener('click', () => {
-    const name = savedName || getShopName();
-    playSfx('click');
-    onStart(name);
-  });
+  // Task 3.5: 3 trường hợp nút start
+  const btnStart = container.querySelector('#btn-start');
+  if (btnStart) {
+    btnStart.addEventListener('click', () => {
+      playSfx('click');
+      onStart('new');
+    });
+  }
+  const btnContinue = container.querySelector('#btn-continue');
+  if (btnContinue) {
+    btnContinue.addEventListener('click', () => {
+      playSfx('click');
+      onStart('continue');
+    });
+  }
+  const btnNew = container.querySelector('#btn-new');
+  if (btnNew) {
+    btnNew.addEventListener('click', () => {
+      playSfx('click');
+      onStart('new');
+    });
+  }
 
   const btnMusic = container.querySelector('#btn-music');
   const btnSfx = container.querySelector('#btn-sfx');
