@@ -654,3 +654,21 @@ h1, h2, h3, .btn-primary {
   color: #c0392b;
   margin: 0.5rem 0;
 }
+
+/* 3.1a: badge giờ cao điểm */
+.hud-peak {
+  font-family: 'Baloo 2', cursive;
+  font-weight: 800;
+  font-size: 0.7rem;
+  color: #fff;
+  background: #e74c3c;
+  border-radius: 8px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+/* 3.1b: khách có thể chạm để chọn */
+.customer { cursor: pointer; }
+.customer.selected {
+  border: 3px solid #ffd700;
+  box-shadow: 0 0 10px #ffd700;
+}
