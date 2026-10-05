@@ -22,7 +22,6 @@ export function renderIntro(container, onStart) {
     <div class="intro-content">
       <div class="intro-logo"><img src="assets/logo-pho.webp" alt="Phở Đi!" style="width:100px;height:100px;object-fit:contain;"></div>
       <h1 class="intro-title">Phở Đi!</h1>
-      ${savedName ? `<p class="intro-shop">Quán <strong>${escapeHtml(savedName)}</strong></p>` : ''}
       <button id="btn-start" class="btn-primary btn-start">Bắt đầu chơi</button>
       <div class="audio-toggles">
         <button id="btn-music" class="toggle-btn" title="Nhạc nền"><img src="${s.music ? 'assets/icons/music-on.webp' : 'assets/icons/music-off.webp'}" class="toggle-icon"></button>
@@ -38,10 +37,11 @@ export function renderIntro(container, onStart) {
     modal.className = 'name-modal';
     modal.innerHTML = `
       <div class="name-modal-box">
-        <h2>Đặt tên quán</h2>
+        <h2>Chào mừng đến với Phở Đi!</h2>
+        <p class="name-modal-desc">Hãy đặt tên cho quán phở của bạn để bắt đầu hành trình!</p>
         <input id="modal-shop-name" class="name-input" type="text"
-          placeholder="Nhập tên quán của bạn..." maxlength="20" autocomplete="off">
-        <button id="modal-confirm" class="btn-primary">Xác nhận</button>
+          placeholder="Nhập tên quán..." maxlength="20" autocomplete="off">
+        <button id="modal-confirm" class="btn-primary">Bắt đầu</button>
       </div>
     `;
     container.appendChild(modal);
@@ -55,15 +55,6 @@ export function renderIntro(container, onStart) {
       if (name) {
         setShopName(name);
         modal.remove();
-        // Cập nhật hiển thị tên
-        const shopEl = container.querySelector('.intro-shop');
-        if (shopEl) shopEl.innerHTML = `Quán <strong>${escapeHtml(name)}</strong>`;
-        else {
-          const p = document.createElement('p');
-          p.className = 'intro-shop';
-          p.innerHTML = `Quán <strong>${escapeHtml(name)}</strong>`;
-          container.querySelector('.intro-title').after(p);
-        }
       }
       playSfx('click');
     });
