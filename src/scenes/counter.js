@@ -36,6 +36,7 @@ export function renderCounter(container, state, callbacks = {}) {
   container.innerHTML = `
     <div class="counter-bg-css"></div>
     <div class="hud-top">
+      <button id="btn-counter-back" class="btn-back-hud">←</button>
       <div class="hud-item">🕐 <span id="hud-time">${state.time || '6:00'}</span></div>
       <div class="hud-item">💰 <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div>
       <div class="hud-item">⭐ <span id="hud-star">${state.stars || 0}</span></div>
@@ -57,7 +58,6 @@ export function renderCounter(container, state, callbacks = {}) {
         </div>
       `).join('')}
     </div>
-    <button id="btn-counter-back" class="btn-back">←</button>
   `;
 
   container.querySelectorAll('.station').forEach(btn => {
