@@ -104,8 +104,8 @@
 - [x] Khách bỏ đi → -1★
 - [x] Đồng hồ: 6:00 → 21:00, 1h game = 18s thực
 - [x] Hết 21h → toast "Ngày mới", reset khách, trừ 50k thuê
-- [ ] Trừ tiền nguyên liệu đã dùng trong ngày (Tony duyệt 2026-10-05)
-- [ ] Công an phạt: 30%/ngày, modal 3 lựa chọn (Tony duyệt 2026-10-05):
+- [x] Trừ tiền nguyên liệu đã dùng trong ngày (Tony duyệt 2026-10-05)
+- [x] Công an phạt: 30%/ngày, modal 3 lựa chọn (Tony duyệt 2026-10-05):
   - Nộp phạt (-20-100k)
   - Dọn hàng nhanh (3s, kịp thì 0đ, không kịp ×2)
   - Lót tay (-30k cố định)
