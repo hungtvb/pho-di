@@ -21,8 +21,8 @@
 - **Luôn giữ tỉ lệ mobile dọc 9:19.5** cho background
 - Crop về 9:19.5 trước khi đưa vào game
 
-### Asset cần làm lại
-- [ ] 10 sprite nguyên liệu (chibi style)
-- [ ] 4 sprite khách (chibi style)
-- [ ] Background intro (có thể giữ hoặc vẽ lại theo style mới)
-- [ ] Logo/title "Phở Đi!" 3D khối
+### Quy tắc icon (Tony 2026-10-05)
+- **Tất cả icon phải tự vẽ** — không dùng emoji
+- Icon vẽ tay style chibi, không mặt (trừ nhân vật)
+- Cặp bật/tắt phải đồng nhất (cùng base + X đỏ)
+- Nền trong suốt (RGBA), kích thước nội dung đều nhau
