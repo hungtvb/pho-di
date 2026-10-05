@@ -391,15 +391,19 @@ h1, h2, h3, .btn-primary {
 .step.done { opacity: 0.85; }
 .step.done .step-icon { filter: grayscale(0.3); }
 .btn-back-hud {
-  width: 36px;
-  height: 36px;
-  font-size: 1.1rem;
-  border: 2px solid rgba(255,255,255,0.7);
+  width: 40px;
+  height: 40px;
+  border: none;
   border-radius: 50%;
-  background: rgba(255,255,255,0.2);
-  color: #fff;
+  background: transparent;
   cursor: pointer;
   flex-shrink: 0;
+  padding: 4px;
+}
+.btn-back-hud img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .btn-back {
   position: absolute;
