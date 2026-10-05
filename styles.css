@@ -108,6 +108,7 @@ h1, h2, h3, .btn-primary {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-top: 28%;
   padding-bottom: 12vh;
   width: 100%;
 }
