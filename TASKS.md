@@ -204,6 +204,38 @@
 
 ---
 
+### 4.5 Polish màn intro (tổng hợp review 2026-10-05)
+**Nguồn:** Tony review ảnh chụp màn intro, liệt kê 7 lỗi UI/UX + 5 cải thiện + 4 performance
+
+**Lỗi UI:**
+- [ ] Chữ tên quán nằm quá thấp trên bảng gỗ (y~580, 76% chiều cao) → đưa lên giữa bảng
+- [ ] Icon tô phở đè lên viền dưới bảng gỗ → tách ra, không che chi tiết gỗ
+- [ ] Bảng gỗ dính sát mép trên, thiếu khoảng thở → cân đối lại padding
+- [ ] Chữ "Phở Đi!" đè lên mái hiên sọc (khó đọc) → thêm shadow hoặc dời lên vùng nền trơn
+- [ ] v0.1.0 quá mờ, trông như lỗi render → cho vào góc hoặc bỏ
+
+**Màu sắc:**
+- [ ] Chữ "Phở Đi!" đỏ quá gắt (vi phạm rule contrast thấp) → giảm saturation về đỏ gạch #C0392B
+- [ ] Nút âm thanh nâu quá đậm → đổi sang nâu nhạt/cam nhạt
+- [ ] Nút âm thanh không thể hiện trạng thái bật/tắt → thêm visual mờ/gạch chéo khi tắt
+- [ ] Icon loa hơi nhỏ, chi tiết sóng âm mờ → tăng kích thước icon
+
+**Cải thiện UX:**
+- [ ] Tagline "Quản lý quán phở của bạn!" dưới title
+- [ ] Nút "Bắt đầu chơi" pulse nhẹ (scale 1.0→1.03)
+- [ ] Label "Tên quán:" cho ô input
+- [ ] Hint: khi gõ tên, nhấp nháy nhẹ chữ trên bảng 1 lần
+
+**Performance:**
+- [ ] Màu nền chờ kem #F6EEDC cho `.intro-bg` (khi ảnh 3MB chưa load)
+- [ ] `<link rel="preload" as="image">` cho background trong index.html
+- [ ] Bản mobile 1080×2340 nhẹ hơn (~300KB), giữ 8K cho desktop
+- [ ] (optional) Blur-up: thumbnail 20px blur làm placeholder
+
+**Test:** Chụp screenshot so sánh trước/sau, Tony duyệt
+
+---
+
 ### 4.4 Deploy
 **Chi tiết:**
 - [ ] Test full flow: từ đầu → sập tiệm → chơi lại, không lỗi
