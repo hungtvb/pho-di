@@ -94,7 +94,14 @@ async function main() {
     time: '6:00',
     currentStep: 0,
     dailyCost: 0, // vốn nguyên liệu đã dùng trong ngày (Task 2.4d)
-    stats: { happy: 0, neutral: 0, angry: 0 }, // thống kê feedback (Task 3.3)
+    stats: {
+      happy: 0, neutral: 0, angry: 0, // thống kê feedback (Task 3.3)
+      // Task 3.4: huy hiệu + thử thách
+      bowlsServed: 0, totalEarned: 0, daysPlayed: 1, perfectStreak: 0,
+      dailyGa: 0, dailyEarned: 0, dailyLeft: 0, dailyServed: 0,
+      dailyPerfect: 0, dailyHappy: 0,
+      badges: [], challengeDay: 0, challenges: [], challengeDone: [],
+    },
   };
 
   renderIntro(introEl, async () => {
