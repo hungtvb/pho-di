@@ -634,3 +634,23 @@ h1, h2, h3, .btn-primary {
   0%, 100% { transform: scale(1) rotate(-5deg); }
   50% { transform: scale(1.1) rotate(5deg); }
 }
+
+/* Modal công an (Task 2.4e) */
+.police-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+.police-btn {
+  width: 100%;
+  font-size: 1rem;
+  padding: 0.7rem 1rem;
+}
+.police-countdown {
+  font-family: 'Baloo 2', cursive;
+  font-weight: 800;
+  font-size: 3rem;
+  color: #c0392b;
+  margin: 0.5rem 0;
+}
