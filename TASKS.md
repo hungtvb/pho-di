@@ -185,22 +185,22 @@
 
 ### 4.1 Minigame chuẩn bị
 **Chi tiết:**
-- [ ] 4 minigame: Ninh xương (chạm khi sôi), Thái thịt (vuốt), Rửa rau (chạm rau bẩn), Pha mắm (theo công thức)
-- [ ] Mỗi cái 1-3 thao tác, không chấm điểm
-- [ ] Làm lại mỗi 2 ngày
+- [x] 4 minigame: Ninh xương (chạm khi sôi), Thái thịt (vuốt), Rửa rau (chạm rau bẩn), Pha mắm (theo công thức)
+- [x] Mỗi cái 1-3 thao tác, không chấm điểm
+- [x] Làm lại mỗi 2 ngày
 
-**Test:** Chơi được cả 4 minigame
+**Test:** Đã review + test logic PASS 26/26 (2026-10-05). Buff +5% tiền bán.
 
 ---
 
 ### 4.2 Menu unlock + Nâng cấp quán
 **Chi tiết:**
-- [ ] Check điều kiện: ngày + sao + doanh thu + số tô
-- [ ] Banner "🎉 Mở khóa: Phở tái nạm!"
-- [ ] Món mới xuất hiện trong order khách
-- [ ] Mua mặt bằng (500k): không bị công an phạt nữa (Tony duyệt 2026-10-05)
+- [x] Check điều kiện: ngày + sao + doanh thu + số tô
+- [x] Banner "Mở khóa: Phở tái/nạm!" (không emoji)
+- [x] Món mới xuất hiện trong order khách
+- [x] Mua mặt bằng (500k): không bị công an phạt nữa (Tony duyệt 2026-10-05)
 
-**Test:** Đến ngày 3 + đủ sao → món mới unlock
+**Test:** Đã review + test logic PASS 17/17 (2026-10-05). Fix bug tặng kho khi unlock.
 
 ---
 
@@ -222,14 +222,14 @@
 
 ### 4.6 Không gian quán sống động (mới 2026-10-05)
 **Chi tiết:**
-- [ ] Phase 1: Phố đi bộ + người qua lại (ambient, CSS walk-by loop)
-- [ ] Phase 1: Khách walk-in từ mép màn hình vào hàng đợi (thay xuất hiện đột ngột)
-- [ ] Phase 1: Khách walk-out khi xong/bỏ đi
-- [ ] Phase 2: Bàn ghế chibi (3-4 bộ), khách ngồi thay vì đứng xếp hàng
-- [ ] Phase 2: Khách ăn tại quán: vào → ngồi → gọi món → ăn → ra về
-- [ ] Phase 2: Khu vực shipper đứng chờ riêng (không ngồi), nhận đơn app → đi giao
+- [x] Phase 1: Phố đi bộ + người qua lại (ambient, CSS walk-by loop)
+- [x] Phase 1: Khách walk-in từ mép màn hình vào hàng đợi (thay xuất hiện đột ngột)
+- [x] Phase 1: Khách walk-out khi xong/bỏ đi
+- [x] Phase 2: Bàn ghế chibi (3-4 bộ), khách ngồi thay vì đứng xếp hàng
+- [x] Phase 2: Khách ăn tại quán: vào → ngồi → gọi món → ăn → ra về
+- [x] Phase 2: Khu vực shipper đứng chờ riêng (không ngồi), nhận đơn app → đi giao
 
-**Test:** Quán có người ra vào liên tục, không gian sống động
+**Test:** Đã review + test logic PASS (2026-10-05). Fix 2 bug (feedback bubble, ghost walk-out).
 
 ---
 
@@ -262,6 +262,17 @@
 - [ ] (optional) Blur-up: thumbnail 20px blur làm placeholder
 
 **Test:** Chụp screenshot so sánh trước/sau, Tony duyệt
+
+---
+
+### 4.7 Thuế + Kho nguyên liệu (mới 2026-10-05)
+**Chi tiết:**
+- [x] Thuế 10% doanh thu, trừ cuối ngày cùng mặt bằng + vốn
+- [x] Kho nguyên liệu (bò/gà/quẩy/trứng/giá), hết hàng không bưng được
+- [x] Đi chợ đầu ngày: mua nguyên liệu, trừ tiền ngay
+- [x] Lưu kho vào save
+
+**Test:** Đã review + test logic PASS (2026-10-05).
 
 ---
 
