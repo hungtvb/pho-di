@@ -136,13 +136,15 @@ h1, h2, h3, .btn-primary {
   font-family: 'Baloo 2', cursive;
   font-size: 4.2rem;
   font-weight: 800;
-  color: #fff;
+  color: #e74c3c;
   letter-spacing: 2px;
+  -webkit-text-stroke: 2px #7b2d1a;
   text-shadow:
-    0 3px 0 var(--chili),
-    0 6px 0 rgba(0,0,0,0.15),
-    0 8px 20px rgba(0,0,0,0.4);
-  -webkit-text-stroke: 1px rgba(192,57,43,0.3);
+    0 2px 0 #7b2d1a,
+    0 4px 0 #7b2d1a,
+    0 6px 0 #5d2113,
+    0 8px 16px rgba(0,0,0,0.4);
+  transform: rotate(-2deg);
 }
 .intro-subtitle {
   font-family: 'Baloo 2', cursive;
@@ -223,7 +225,7 @@ h1, h2, h3, .btn-primary {
 .intro-shop strong { color: var(--turmeric); }
 .audio-toggles {
   display: flex;
-  gap: 0.8rem;
+  gap: 1.2rem;
   margin-top: 1.2rem;
 }
 .toggle-btn {
@@ -586,4 +588,9 @@ h1, h2, h3, .btn-primary {
 .name-modal-box .name-input {
   width: 100%;
   margin-bottom: 1rem;
+}
+.name-modal-desc {
+  margin: 0 0 1rem;
+  color: #8b5a2b;
+  font-size: 0.95rem;
 }
