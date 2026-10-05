@@ -4,6 +4,8 @@
 export const MEAT_PRICES = {
   bo: 45000, // phở bò tái
   ga: 40000, // phở gà
+  tai: 48000, // phở tái (mở khóa ngày 3 + 5 sao)
+  nam: 50000, // phở nạm (mở khóa ngày 5 + 10 sao)
 };
 
 export const TOPPING_PRICES = {
@@ -19,6 +21,8 @@ export const TAX_RATE = 0.10; // thuế 10% trên doanh thu ngày
 export const INGREDIENT_COST = {
   bo: 20000,   // thịt bò
   ga: 15000,   // thịt gà
+  tai: 22000,  // thịt tái (món mở khóa)
+  nam: 25000,  // thịt nạm (món mở khóa)
   quay: 2000,  // quẩy
   trung: 3000, // trứng chần
   gia: 1000,   // giá đỗ
@@ -37,6 +41,8 @@ export const INITIAL_STOCK = {
 export const INGREDIENT_NAMES = {
   bo: 'thịt bò',
   ga: 'thịt gà',
+  tai: 'thịt tái',
+  nam: 'thịt nạm',
   quay: 'quẩy',
   trung: 'trứng',
   gia: 'giá',
