@@ -39,6 +39,33 @@ const CRITICAL_ASSETS = [
   'assets/icons/star.webp',
 ];
 
+// Ảnh màn chơi (preload khi bấm Bắt đầu chơi)
+const COUNTER_ASSETS = [
+  'assets/backgrounds/bg-counter.webp',
+  'assets/sprites/banh-pho-v2.webp',
+  'assets/sprites/noi-nuoc-dung-v2.webp',
+  'assets/sprites/to-pho-v2.webp',
+  'assets/sprites/thit-bo-tai-v2.webp',
+  'assets/sprites/thit-ga-v2.webp',
+  'assets/sprites/hanh-ngo-v2.webp',
+  'assets/sprites/rau-thom-v2.webp',
+  'assets/sprites/quay-v2.webp',
+  'assets/sprites/trung-chan-v2.webp',
+  'assets/sprites/gia-do-v2.webp',
+  'assets/sprites/ong-gia-v2.webp',
+  'assets/sprites/co-gai-v2.webp',
+  'assets/sprites/shipper-v2.webp',
+  'assets/sprites/ba-cu-v2.webp',
+  'assets/icons/steps/trung.webp',
+  'assets/icons/steps/to.webp',
+  'assets/icons/steps/nuoc.webp',
+  'assets/icons/steps/thit.webp',
+  'assets/icons/steps/hanh.webp',
+  'assets/icons/steps/topping.webp',
+  'assets/icons/steps/rau.webp',
+  'assets/icons/steps/bung.webp',
+];
+
 async function main() {
   console.log(`[Phở Đi!] v${VERSION} khởi động...`);
 
@@ -69,9 +96,23 @@ async function main() {
     currentStep: 0,
   };
 
-  renderIntro(introEl, () => {
-    console.log('[Phở Đi!] Bắt đầu chơi → màn quầy');
+  renderIntro(introEl, async () => {
+    console.log('[Phở Đi!] Bắt đầu chơi → preload màn quầy');
     playSfx('click');
+
+    // Hiện loading khi sang màn chơi
+    const loadingEl = document.getElementById('screen-loading');
+    if (loadingEl) {
+      loadingEl.querySelector('p').textContent = 'Đang chuẩn bị quán...';
+      loadingEl.classList.add('active');
+    }
+    await preloadImages(COUNTER_ASSETS);
+    console.log('[Phở Đi!] ảnh màn quầy đã preload xong');
+    if (loadingEl) {
+      loadingEl.classList.remove('active');
+      loadingEl.querySelector('p').textContent = 'Đang tải...';
+    }
+
     playMusic();
     renderCounter(counterEl, gameState, {
       onHotspot: (id) => {
