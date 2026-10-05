@@ -699,6 +699,53 @@ h1, h2, h3, .btn-primary {
   border-radius: 8px;
   padding: 2px 6px;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+/* 4.3: icon ngọn lửa vẽ bằng CSS cho badge giờ cao điểm */
+.peak-flame {
+  display: inline-block;
+  width: 12px;
+  height: 16px;
+  background: linear-gradient(to top, #ff6b00 20%, #ffcc00 80%);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  position: relative;
+  flex-shrink: 0;
+}
+.peak-flame::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  bottom: 2px;
+  width: 6px;
+  height: 8px;
+  background: #fff3b0;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+}
+/* 4.3: label "ĐƠN" thay emoji 🧾 trong ticket */
+.ticket-label {
+  font-family: 'Baloo 2', cursive;
+  font-weight: 800;
+  font-size: 0.75rem;
+  color: #fff;
+  background: #a83232;
+  border-radius: 6px;
+  padding: 2px 7px;
+  margin-right: 4px;
+  letter-spacing: 1px;
+}
+/* 4.3: tag "Shipper" thay emoji 🛵 sau tên shipper */
+.shipper-tag {
+  font-family: 'Baloo 2', cursive;
+  font-weight: 700;
+  font-size: 0.65rem;
+  color: #fff;
+  background: #e67e22;
+  border-radius: 6px;
+  padding: 1px 6px;
+  margin-left: 4px;
+  white-space: nowrap;
 }
 /* 3.1b: khách có thể chạm để chọn */
 .customer { cursor: pointer; }
