@@ -345,6 +345,17 @@ h1, h2, h3, .btn-primary {
 .step.active .step-icon { filter: drop-shadow(0 0 6px var(--turmeric)); }
 .step.done { opacity: 0.85; }
 .step.done .step-icon { filter: grayscale(0.3); }
+.btn-back-hud {
+  width: 36px;
+  height: 36px;
+  font-size: 1.1rem;
+  border: 2px solid rgba(255,255,255,0.7);
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+}
 .btn-back {
   position: absolute;
   top: 0.5rem;
