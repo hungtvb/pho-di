@@ -15,14 +15,14 @@ const GAME_MIN_PER_REAL_SEC = 60 / REAL_SEC_PER_GAME_HOUR;
 
 // 8 bước làm phở
 export const STEPS = [
-  { id: 'trung',   label: 'Trụng',   icon: '🍜' },
-  { id: 'to',      label: 'Tô',      icon: '🥣' },
-  { id: 'nuoc',    label: 'Nước',    icon: '🍲' },
-  { id: 'thit',    label: 'Thịt',    icon: '🥩' },
-  { id: 'hanh',    label: 'Hành',    icon: '🌿' },
-  { id: 'topping', label: 'Topping', icon: '✨' },
-  { id: 'rau',     label: 'Rau',     icon: '🥬' },
-  { id: 'bung',    label: 'Bưng',    icon: '🛎️' },
+  { id: 'trung',   label: 'Trụng',   icon: 'assets/icons/steps/trung.webp' },
+  { id: 'to',      label: 'Tô',      icon: 'assets/icons/steps/to.webp' },
+  { id: 'nuoc',    label: 'Nước',    icon: 'assets/icons/steps/nuoc.webp' },
+  { id: 'thit',    label: 'Thịt',    icon: 'assets/icons/steps/thit.webp' },
+  { id: 'hanh',    label: 'Hành',    icon: 'assets/icons/steps/hanh.webp' },
+  { id: 'topping', label: 'Topping', icon: 'assets/icons/steps/topping.webp' },
+  { id: 'rau',     label: 'Rau',     icon: 'assets/icons/steps/rau.webp' },
+  { id: 'bung',    label: 'Bưng',    icon: 'assets/icons/steps/bung.webp' },
 ];
 
 // Các trạm trên quầy — mỗi trạm có sprite riêng
@@ -82,10 +82,10 @@ export function renderCounter(container, state, callbacks = {}) {
     <div class="counter-bg-css"></div>
     <div class="hud-top">
       <button id="btn-counter-back" class="btn-back-hud">←</button>
-      <div class="hud-item">🕐 <span id="hud-time">${state.time || '6:00'}</span></div>
-      <div class="hud-item">💰 <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div>
-      <div class="hud-item">⭐ <span id="hud-star">${state.stars || 0}</span></div>
-      <div class="hud-item">📅 <span id="hud-day">Ngày ${state.day || 1}</span></div>
+      <div class="hud-item"><img src="assets/icons/clock.webp" class="hud-icon"> <span id="hud-time">${state.time || '6:00'}</span></div>
+      <div class="hud-item"><img src="assets/icons/money.webp" class="hud-icon"> <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div>
+      <div class="hud-item"><img src="assets/icons/star.webp" class="hud-icon"> <span id="hud-star">${state.stars || 0}</span></div>
+      <div class="hud-item"><img src="assets/icons/day.webp" class="hud-icon"> <span id="hud-day">Ngày ${state.day || 1}</span></div>
     </div>
     <div class="order-ticket">🧾 <span id="order-text">Chờ khách...</span></div>
     <div class="customer-row" id="customer-row" hidden></div>
@@ -105,7 +105,7 @@ export function renderCounter(container, state, callbacks = {}) {
     <div class="hud-steps">
       ${STEPS.map((s, i) => `
         <div class="step" data-step="${i}">
-          <span class="step-icon">${s.icon}</span>
+          <span class="step-icon"><img src="${s.icon}" alt="${s.label}"></span>
           <span class="step-label">${s.label}</span>
         </div>
       `).join('')}
