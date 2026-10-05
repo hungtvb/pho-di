@@ -210,12 +210,16 @@ h1, h2, h3, .btn-primary {
   cursor: pointer;
   box-shadow: 0 3px 0 rgba(0,0,0,0.25);
   transition: transform 0.08s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 .toggle-btn:active {
   transform: translateY(2px);
   box-shadow: 0 1px 0 rgba(0,0,0,0.25);
 }
-.toggle-icon { width: 28px; height: 28px; object-fit: contain; }
+.toggle-icon { width: 28px; height: 28px; object-fit: contain; display: block; }
 
 /* ---- Counter scene (task 2.1) ---- */
 #screen-counter.active { padding: 0; display: flex; flex-direction: column; align-items: center; position: relative; height: 100%; }
