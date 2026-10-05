@@ -32,8 +32,8 @@ export function renderIntro(container, onStart) {
       }
       <button id="btn-start" class="btn-primary btn-start">Bắt đầu chơi</button>
       <div class="audio-toggles">
-        <button id="btn-music" class="toggle-btn" title="Nhạc nền">${s.music ? '🎵' : '🔇'}</button>
-        <button id="btn-sfx" class="toggle-btn" title="Âm thanh">${s.sfx ? '🔊' : '🔈'}</button>
+        <button id="btn-music" class="toggle-btn" title="Nhạc nền"><img src="${s.music ? 'assets/icons/music-on.webp' : 'assets/icons/music-off.webp'}" class="toggle-icon"></button>
+        <button id="btn-sfx" class="toggle-btn" title="Âm thanh"><img src="${s.sfx ? 'assets/icons/sound-on.webp' : 'assets/icons/sound-off.webp'}" class="toggle-icon"></button>
       </div>
       <p class="intro-version">v0.1.0</p>
     </div>
@@ -62,14 +62,14 @@ export function renderIntro(container, onStart) {
   btnMusic.addEventListener('click', (e) => {
     e.stopPropagation();
     const on = toggleMusic();
-    btnMusic.textContent = on ? '🎵' : '🔇';
+    btnMusic.querySelector('img').src = on ? 'assets/icons/music-on.webp' : 'assets/icons/music-off.webp';
     playSfx('click');
   });
 
   btnSfx.addEventListener('click', (e) => {
     e.stopPropagation();
     const on = toggleSfx();
-    btnSfx.textContent = on ? '🔊' : '🔈';
+    btnSfx.querySelector('img').src = on ? 'assets/icons/sound-on.webp' : 'assets/icons/sound-off.webp';
     playSfx('click');
   });
 }
