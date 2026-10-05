@@ -5,6 +5,13 @@ import { playSfx } from '../audio.js';
 import { createTapflow, STEP_NAMES, MEAT_NAMES, TOPPING_NAMES, TRUNG_DURATION_MS } from '../logic/tapflow.js';
 import { randomCustomer, nextArrivalInterval, parseHour } from '../logic/arrivals.js';
 import { createQueue } from '../logic/queue.js';
+import { calcPrice, formatVND, DAILY_RENT } from '../logic/economy.js';
+
+// Task 2.4b: 18 giây thực = 1 giờ game; đồng hồ chạy 6:00 → 21:00
+const GAME_START_MIN = 6 * 60;   // 6:00
+const GAME_END_MIN = 21 * 60;    // 21:00
+const REAL_SEC_PER_GAME_HOUR = 18;
+const GAME_MIN_PER_REAL_SEC = 60 / REAL_SEC_PER_GAME_HOUR;
 
 // 8 bước làm phở
 export const STEPS = [
@@ -47,6 +54,7 @@ export function renderCounter(container, state, callbacks = {}) {
   let cooking = false; // đang nấu cho khách đầu hàng?
   let arrivalTimer = null;
   let patienceTimer = null;
+  let clockTimer = null; // Task 2.4b: đồng hồ game
   let dishGen = 0; // token chống race: tăng mỗi lần startDish
 
   const flow = createTapflow();
@@ -124,7 +132,8 @@ export function renderCounter(container, state, callbacks = {}) {
       el.classList.toggle('active', i === step);
       el.classList.toggle('done', i < step);
     });
-    container.querySelector('#serve-overlay').hidden = step !== 7;
+    // Hiện nút bưng từ bước 4 trở đi (cho phép bỏ qua bước tùy chọn)
+    container.querySelector('#serve-overlay').hidden = step < 4;
   }
 
   // ---------- Task 2.3c: UI khách hàng ----------
@@ -227,6 +236,50 @@ export function renderCounter(container, state, callbacks = {}) {
     }, 1000);
   }
 
+  function startClock() {
+    clearInterval(clockTimer);
+    // Parse state.time "H:MM" -> phút; fallback 6:00
+    const parseMinutes = (t) => {
+      const m = /^(\d{1,2}):(\d{2})/.exec(t || '');
+      if (!m) return GAME_START_MIN;
+      return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+    };
+    let gameMin = parseMinutes(state.time);
+    const fmt = (mins) => {
+      const h = Math.floor(mins / 60);
+      const m = Math.floor(mins % 60);
+      return `${h}:${String(m).padStart(2, '0')}`;
+    };
+    clockTimer = setInterval(() => {
+      if (!container.isConnected) return;
+      gameMin += GAME_MIN_PER_REAL_SEC;
+      if (gameMin >= GAME_END_MIN) {
+        // Hết ngày: qua ngày mới
+        clearInterval(clockTimer);
+        state.day = (state.day || 1) + 1;
+        state.time = '6:00';
+        state.money = Math.max(0, (state.money || 0) - DAILY_RENT);
+        // Xóa hết khách đang chờ
+        queue.list().forEach(c => queue.removeById(c.id));
+        cooking = false;
+        dishGen++; // chống race: hủy progress trụng đang chạy dở
+        flow.clearOrder();
+        updateHUD(container, state);
+        updateTicket();
+        syncSteps(); // reset thanh 8 bước + ẩn nút bưng
+        renderCustomers();
+        toast(`🌙 Hết ngày! Trừ tiền mặt bằng ${formatVND(DAILY_RENT)}. Ngày ${state.day} bắt đầu!`);
+        playSfx('success');
+        startClock(); // bắt đầu ngày mới
+        scheduleArrival(2500);
+        return;
+      }
+      state.time = fmt(gameMin);
+      const el = container.querySelector('#hud-time');
+      if (el) el.textContent = state.time;
+    }, 1000);
+  }
+
   function runTrungProgress(btn) {
     btn.classList.add('progressing');
     playSfx('pop');
@@ -268,9 +321,20 @@ export function renderCounter(container, state, callbacks = {}) {
       cooking = false;
       container.querySelector('#serve-overlay').hidden = true;
       if (served) {
-        state.money = (state.money || 0) + 45000;
+        // Task 2.4a+2.4c: tính tiền đúng theo giá món + topping
+        const price = calcPrice(served.order);
+        state.money = (state.money || 0) + price;
+        // "Ngon" = đủ nguyên liệu tùy chọn → +1 sao; thiếu → -1 sao
+        let starMsg = '';
+        if (r.perfect) {
+          state.stars = (state.stars || 0) + 1;
+          starMsg = ' +1⭐';
+        } else {
+          state.stars = Math.max(0, (state.stars || 0) - 1);
+          starMsg = ' -1⭐ (thiếu nguyên liệu)';
+        }
         updateHUD(container, state);
-        toast(`😊 ${served.name} hài lòng! +45.000đ`);
+        toast(`😊 ${served.name} hài lòng! +${formatVND(price)}${starMsg}`);
       }
       setTimeout(() => {
         if (!container.isConnected || cooking) return; // đã có món mới đang nấu thì bỏ qua
@@ -297,15 +361,18 @@ export function renderCounter(container, state, callbacks = {}) {
     playSfx('click');
     clearTimeout(arrivalTimer);
     clearInterval(patienceTimer);
+    clearInterval(clockTimer);
     clearTimeout(toastTimer);
     onBack();
   });
 
   // Task 2.3: bắt đầu đón khách — khách đầu sau 2.5s, sau đó theo Poisson
+  // Task 2.4b: khởi động đồng hồ game
   updateTicket();
   renderCustomers();
   scheduleArrival(2500);
   startPatienceTicker();
+  startClock();
 }
 
 export function updateHUD(container, state) {
