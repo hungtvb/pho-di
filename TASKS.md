@@ -172,12 +172,12 @@
 
 ### 3.5 Save/load
 **Chi tiết:**
-- [ ] logic/save.js: localStorage key `pho-di/v1`
-- [ ] Lưu: tiền, sao, ngày, khách, kệ, cài đặt
-- [ ] Lưu liên tục mỗi 5s + khi rời trang
-- [ ] Mở lại → vào thẳng quầy, tạm dừng chờ "Bán tiếp"
+- [x] logic/save.js: localStorage key `pho-di/v1`
+- [x] Lưu: tiền, sao, ngày, khách, kệ, cài đặt
+- [x] Lưu liên tục mỗi 5s + khi rời trang
+- [x] Mở lại → vào thẳng quầy, tạm dừng chờ "Bán tiếp"
 
-**Test:** Thoát giữa chừng → mở lại → tiếp tục được
+**Test:** Đã review + test logic PASS 26/26 (2026-10-05).
 
 ---
 
