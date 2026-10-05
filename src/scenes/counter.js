@@ -9,6 +9,7 @@ import { calcPrice, calcCost, formatVND, DAILY_RENT } from '../logic/economy.js'
 import { rollIncident } from '../logic/incidents.js';
 import { randomAppOrder, shouldHaveAppOrder, rollAppCancel, appCancelDelayMs } from '../logic/appOrders.js';
 import { getFeedback } from '../logic/feedback.js';
+import { BADGES, checkNewBadges, initProgressionStats, resetDailyStats, ensureDailyChallenges, checkNewChallenges } from '../logic/progression.js';
 
 // Task 2.4b: 18 giây thực = 1 giờ game; đồng hồ chạy 6:00 → 21:00
 const GAME_START_MIN = 6 * 60;   // 6:00
@@ -101,6 +102,8 @@ export function renderCounter(container, state, callbacks = {}) {
       <div class="hud-item"><img src="assets/icons/star.webp" class="hud-icon"> <span id="hud-star">${state.stars || 0}</span></div>
       <div class="hud-item"><img src="assets/icons/day.webp" class="hud-icon"> <span id="hud-day">Ngày ${state.day || 1}</span></div>
       <span id="hud-peak" class="hud-peak" hidden>PEAK</span>
+      <button id="btn-badges" class="hud-mini-btn" title="Tủ huy hiệu"><img src="assets/icons/star.webp"></button>
+      <button id="btn-challenges" class="hud-mini-btn" title="Thử thách hôm nay"><img src="assets/icons/bell.webp"></button>
     </div>
     <div class="order-ticket">🧾 <span id="order-text">Chờ khách...</span></div>
     <div class="customer-row" id="customer-row" hidden></div>
@@ -138,6 +141,10 @@ export function renderCounter(container, state, callbacks = {}) {
     updateTicket();
   });
 
+  // 3.4: nút tủ huy hiệu + thử thách trong HUD
+  container.querySelector('#btn-badges').addEventListener('click', () => showBadgeCase());
+  container.querySelector('#btn-challenges').addEventListener('click', () => showChallengePanel());
+
   state.currentStep = 0;
   state.selectedCustomerId = null; // 3.1b: khách đang được chọn (null = đầu hàng)
   state.wasPeak = false; // 3.1a
@@ -168,6 +175,107 @@ export function renderCounter(container, state, callbacks = {}) {
     setTimeout(() => {
       if (bubble.isConnected) bubble.remove();
     }, 3500);
+  }
+
+  // 3.4: Banner chúc mừng huy hiệu mới (không chặn game, tự đóng sau 3.5s)
+  function showBadgeBanner(badge) {
+    // Xóa banner cũ nếu còn
+    container.querySelectorAll('.badge-banner').forEach(b => b.remove());
+    const banner = document.createElement('div');
+    banner.className = 'badge-banner';
+    banner.innerHTML = `
+      <img src="assets/icons/star.webp" class="badge-banner-icon" alt="huy hiệu">
+      <div class="badge-banner-text">
+        <strong>Huy hiệu mới: ${badge.name}!</strong>
+        <span>${badge.desc} — Thưởng ${formatVND(badge.reward)}</span>
+      </div>
+      <button class="badge-banner-close" aria-label="Đóng">×</button>
+    `;
+    container.appendChild(banner);
+    const close = () => { if (banner.isConnected) banner.remove(); };
+    banner.querySelector('.badge-banner-close').addEventListener('click', close);
+    setTimeout(close, 3500);
+    playSfx('success');
+  }
+
+  // 3.4: Tủ trưng bày huy hiệu (modal)
+  function showBadgeCase() {
+    const stats = initProgressionStats(state.stats);
+    const unlocked = new Set(stats.badges);
+    const modal = document.createElement('div');
+    modal.className = 'name-modal';
+    modal.innerHTML = `
+      <div class="name-modal-box badge-case">
+        <h2>Tủ huy hiệu</h2>
+        <p class="name-modal-desc">${unlocked.size}/${BADGES.length} huy hiệu đã mở</p>
+        <div class="badge-grid">
+          ${BADGES.map(b => `
+            <div class="badge-item ${unlocked.has(b.id) ? 'unlocked' : 'locked'}">
+              <img src="assets/icons/star.webp" class="badge-item-icon" alt="${b.name}">
+              <div class="badge-item-name">${b.name}</div>
+              <div class="badge-item-desc">${b.desc}</div>
+              <div class="badge-item-reward">${formatVND(b.reward)}</div>
+            </div>
+          `).join('')}
+        </div>
+        <button class="btn-primary" data-act="close">Đóng</button>
+      </div>
+    `;
+    container.appendChild(modal);
+    modal.querySelector('[data-act="close"]').addEventListener('click', () => modal.remove());
+    playSfx('click');
+  }
+
+  // 3.4: Panel thử thách hôm nay (modal)
+  function showChallengePanel() {
+    const stats = initProgressionStats(state.stats);
+    const challenges = ensureDailyChallenges(stats, state.day || 1);
+    const done = new Set(stats.challengeDone || []);
+    const modal = document.createElement('div');
+    modal.className = 'name-modal';
+    modal.innerHTML = `
+      <div class="name-modal-box challenge-panel">
+        <h2>Thử thách hôm nay</h2>
+        <p class="name-modal-desc">Hoàn thành để nhận thưởng</p>
+        <div class="challenge-list">
+          ${challenges.map(c => `
+            <div class="challenge-item ${done.has(c.id) ? 'done' : ''}">
+              <div class="challenge-name">${c.name}</div>
+              <div class="challenge-reward">${done.has(c.id) ? 'Đã xong' : 'Thưởng ' + formatVND(c.reward)}</div>
+            </div>
+          `).join('')}
+        </div>
+        <button class="btn-primary" data-act="close">Đóng</button>
+      </div>
+    `;
+    container.appendChild(modal);
+    modal.querySelector('[data-act="close"]').addEventListener('click', () => modal.remove());
+    playSfx('click');
+  }
+
+  // 3.4: kiểm tra huy hiệu + thử thách mới sau mỗi lần bán
+  function checkProgression() {
+    const stats = initProgressionStats(state.stats);
+    stats.stars = state.stars || 0; // sao nằm ở state.stars, badge check đọc từ stats
+    // Huy hiệu mới
+    const newBadges = checkNewBadges(stats, stats.badges);
+    for (const b of newBadges) {
+      stats.badges.push(b.id);
+      state.money = (state.money || 0) + b.reward;
+      showBadgeBanner(b);
+    }
+    // Thử thách mới hoàn thành
+    ensureDailyChallenges(stats, state.day || 1);
+    const newChallenges = checkNewChallenges(stats);
+    for (const c of newChallenges) {
+      stats.challengeDone.push(c.id);
+      state.money = (state.money || 0) + c.reward;
+      toast(`Thử thách xong: ${c.name}! +${formatVND(c.reward)}`);
+      playSfx('success');
+    }
+    if (newBadges.length > 0 || newChallenges.length > 0) {
+      updateHUD(container, state);
+    }
   }
 
   // Task 2.4e: công an kiểm tra cuối ngày (30%/ngày). Bỏ qua nếu đã mua mặt bằng.
@@ -359,6 +467,8 @@ export function renderCounter(container, state, callbacks = {}) {
         return;
       }
       state.stars = Math.max(0, (state.stars || 0) - leftCount);
+      // 3.4: đếm khách bỏ đi trong ngày (cho thử thách "không để khách bỏ đi")
+      initProgressionStats(state.stats).dailyLeft += leftCount;
       updateHUD(container, state);
       playSfx('fail');
       if (activeLeft) {
@@ -399,6 +509,9 @@ export function renderCounter(container, state, callbacks = {}) {
         const dayCost = state.dailyCost || 0;
         state.money = Math.max(0, (state.money || 0) - DAILY_RENT - dayCost);
         state.dailyCost = 0;
+        // 3.4: reset stats ngày, tăng số ngày đã chơi
+        resetDailyStats(initProgressionStats(state.stats));
+        state.stats.daysPlayed++;
         // Xóa hết khách đang chờ
         queue.list().forEach(c => queue.removeById(c.id));
         cooking = false;
@@ -535,6 +648,21 @@ export function renderCounter(container, state, callbacks = {}) {
         state.stars = Math.max(0, (state.stars || 0) + fb.starDelta);
         starMsg = ` ${fb.starDelta}<img src="assets/icons/star.webp" class="toast-icon">`;
       }
+      // 3.4: theo dõi stats cho huy hiệu + thử thách
+      const prog = initProgressionStats(state.stats);
+      prog.bowlsServed++;
+      prog.totalEarned += price;
+      prog.dailyServed++;
+      prog.dailyEarned += price;
+      if (target.order.meat === 'ga') prog.dailyGa++;
+      if (perfect && !wrongBowl) {
+        prog.perfectStreak++;
+        prog.dailyPerfect++;
+      } else {
+        prog.perfectStreak = 0;
+      }
+      if (fb.mood === 'happy') prog.dailyHappy++;
+      checkProgression();
       updateHUD(container, state);
       toast(`${target.name} đã nhận món! +${formatVND(price)}${starMsg}`);
       // 3.3: hiện bong bóng feedback sau 4s
