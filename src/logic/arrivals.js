@@ -4,10 +4,10 @@
 const TYPES = ['ong-gia', 'co-gai', 'shipper', 'ba-cu'];
 
 const NAMES = {
-  'ong-gia': ['Ông Sáu', 'Ông Ba'],
-  'co-gai': ['Chị Mai', 'Cô Lan'],
-  'shipper': ['Anh Ship', 'Chú Giao'],
-  'ba-cu': ['Bà Tám', 'Bà Tư'],
+  'ong-gia': ['Ông Sáu', 'Ông Ba', 'Ông Hai', 'Bác Năm', 'Chú Bảy', 'Ông Mười'],
+  'co-gai': ['Chị Mai', 'Cô Lan', 'Em Ngọc', 'Chị Hoa', 'Cô Trinh', 'Bé An'],
+  'shipper': ['Anh Ship', 'Chú Giao', 'Em Tốc', 'Anh Nhanh', 'Chú Gió', 'Em Lẹ'],
+  'ba-cu': ['Bà Tám', 'Bà Tư', 'Bà Sáu', 'Cụ Năm', 'Bà Chín', 'Mẹ Mười'],
 };
 
 const MEATS = ['bo', 'ga'];
