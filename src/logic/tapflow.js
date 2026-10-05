@@ -208,7 +208,7 @@ export function createTapflow() {
       const hasAllTops = wantTops.every(t => d.toppings.includes(t));
       const perfect = d.scallion && d.herbs && hasAllTops;
       state.done = true;
-      return { valid: true, message: 'Bưng ra phục vụ! 🍜', done: true, perfect, state: snapshot() };
+      return { valid: true, message: 'Bưng ra phục vụ!', done: true, perfect, state: snapshot() };
     }
 
     // Các bước đơn giản: 1 (tô), 2 (nước), 4 (hành), 6 (rau)
