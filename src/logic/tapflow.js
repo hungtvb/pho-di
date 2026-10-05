@@ -15,6 +15,9 @@ export const STEP_NAMES = [
 export const TRUNG_DURATION_MS = 3000;
 
 // Trạm nào thuộc bước nào
+// Bước tùy chọn: có thể bỏ qua (thiếu vẫn bưng được, nhưng không +sao)
+const OPTIONAL_STEPS = new Set([4, 5, 6]);
+
 const STEP_STATIONS = {
   0: ['noi-trung'],
   1: ['to'],
@@ -113,6 +116,18 @@ export function createTapflow() {
     if (!expected.includes(hotspotId)) {
       const actualStep = HOTSPOT_STEP[hotspotId];
       if (actualStep !== undefined && actualStep !== state.step) {
+        // Cho phép nhảy qua các bước tùy chọn (4,5,6)
+        if (actualStep > state.step) {
+          let canSkip = true;
+          for (let s = state.step; s < actualStep; s++) {
+            if (!OPTIONAL_STEPS.has(s)) { canSkip = false; break; }
+          }
+          if (canSkip) {
+            state.step = actualStep; // nhảy tới bước mới
+            // Tiếp tục xử lý như tap đúng bước (đệ quy 1 lần)
+            return tap(hotspotId);
+          }
+        }
         return {
           valid: false,
           message: `Cần làm "${STEP_NAMES[state.step]}" trước!`,
@@ -178,20 +193,22 @@ export function createTapflow() {
     }
 
     if (state.step === 7) {
-      // Bưng ra: validate toàn bộ
+      // Bưng ra: chỉ bắt buộc bánh/tô/nước/thịt; hành/rau/topping thiếu vẫn bưng được
       const d = state.dish;
       const missing = [];
       if (!d.noodle) missing.push(STEP_NAMES[0]);
       if (!d.bowl) missing.push(STEP_NAMES[1]);
       if (!d.broth) missing.push(STEP_NAMES[2]);
       if (!d.meat) missing.push(STEP_NAMES[3]);
-      if (!d.scallion) missing.push(STEP_NAMES[4]);
-      if (!d.herbs) missing.push(STEP_NAMES[6]);
       if (missing.length > 0) {
         return { valid: false, message: `Còn thiếu: ${missing.join(', ')}!`, state: snapshot() };
       }
+      // "Ngon" = đủ cả nguyên liệu tùy chọn (hành, rau, đủ topping theo order)
+      const wantTops = state.order ? state.order.toppings : [];
+      const hasAllTops = wantTops.every(t => d.toppings.includes(t));
+      const perfect = d.scallion && d.herbs && hasAllTops;
       state.done = true;
-      return { valid: true, message: 'Bưng ra phục vụ! 🍜', done: true, state: snapshot() };
+      return { valid: true, message: 'Bưng ra phục vụ! 🍜', done: true, perfect, state: snapshot() };
     }
 
     // Các bước đơn giản: 1 (tô), 2 (nước), 4 (hành), 6 (rau)
