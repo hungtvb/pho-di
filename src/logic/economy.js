@@ -24,6 +24,54 @@ export const INGREDIENT_COST = {
   gia: 1000,   // giá đỗ
 };
 
+// Kho nguyên liệu: tồn kho khởi đầu mỗi loại
+export const INITIAL_STOCK = {
+  bo: 10,
+  ga: 10,
+  quay: 10,
+  trung: 10,
+  gia: 10,
+};
+
+// Tên hiển thị nguyên liệu (dùng cho toast "Hết ...")
+export const INGREDIENT_NAMES = {
+  bo: 'thịt bò',
+  ga: 'thịt gà',
+  quay: 'quẩy',
+  trung: 'trứng',
+  gia: 'giá',
+};
+
+/**
+ * Kiểm tra kho có đủ nguyên liệu cho 1 order không.
+ * @param {{meat: string, toppings: string[]}} order
+ * @param {object} inventory tồn kho {bo, ga, quay, trung, gia}
+ * @returns {{ok: boolean, missing: string[]}} missing = key nguyên liệu thiếu
+ */
+export function canMakeOrder(order, inventory) {
+  const missing = [];
+  const inv = inventory || {};
+  if (!order) return { ok: true, missing };
+  if ((inv[order.meat] || 0) < 1 && !missing.includes(order.meat)) missing.push(order.meat);
+  for (const t of (order.toppings || [])) {
+    if ((inv[t] || 0) < 1 && !missing.includes(t)) missing.push(t);
+  }
+  return { ok: missing.length === 0, missing };
+}
+
+/**
+ * Trừ kho theo order. Gọi sau khi canMakeOrder() trả ok.
+ * @param {{meat: string, toppings: string[]}} order
+ * @param {object} inventory tồn kho (mutate trực tiếp)
+ */
+export function consumeOrder(order, inventory) {
+  if (!order || !inventory) return;
+  inventory[order.meat] = Math.max(0, (inventory[order.meat] || 0) - 1);
+  for (const t of (order.toppings || [])) {
+    inventory[t] = Math.max(0, (inventory[t] || 0) - 1);
+  }
+}
+
 /**
  * Tính tổng tiền của 1 order.
  * @param {{meat: string, toppings: string[]}} order
