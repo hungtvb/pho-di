@@ -56,6 +56,26 @@ export function renderCounter(container, state, callbacks = {}) {
     'ba-cu': 'assets/sprites/ba-cu-v2.webp',
   };
   const queue = createQueue(3);
+  // 4.6 Phase 2: 3 bàn ăn — khách thường ngồi bàn, shipper đứng khu riêng
+  // (khởi tạo mới mỗi lần vào quầy → reset khi load save, đúng spec)
+  state.tables = [
+    { id: 0, occupiedBy: null },
+    { id: 1, occupiedBy: null },
+    { id: 2, occupiedBy: null },
+  ];
+  const findFreeTable = () => state.tables.find(t => t.occupiedBy == null);
+  const tableOfCustomer = (id) => state.tables.find(t => t.occupiedBy === id);
+  const assignTable = (c) => {
+    const t = findFreeTable();
+    if (t) t.occupiedBy = c.id;
+    return t || null;
+  };
+  const freeTableOf = (id) => {
+    const t = tableOfCustomer(id);
+    if (t) t.occupiedBy = null;
+    return t || null;
+  };
+  const freeAllTables = () => state.tables.forEach(t => { t.occupiedBy = null; });
   let cooking = false; // đang nấu cho khách đầu hàng?
   let arrivalTimer = null;
   let patienceTimer = null;
@@ -121,6 +141,17 @@ export function renderCounter(container, state, callbacks = {}) {
     </div>
     <div class="order-ticket">🧾 <span id="order-text">Chờ khách...</span></div>
     <div class="customer-row" id="customer-row" hidden></div>
+    <div class="dining-area" id="dining-area">
+      ${[0, 1, 2].map(i => `
+        <div class="table-spot" data-table="${i}">
+          <div class="seat-slot"></div>
+          <div class="table-deco"><div class="table-top"></div><div class="chair chair-l"></div><div class="chair chair-r"></div></div>
+        </div>`).join('')}
+    </div>
+    <div class="shipper-zone" id="shipper-zone" hidden>
+      <div class="shipper-sign">Chờ lấy món</div>
+      <div class="shipper-list"></div>
+    </div>
     <div class="station-layer">
       ${STATIONS.map(s => `
         <button class="station" data-id="${s.id}">
@@ -173,19 +204,18 @@ export function renderCounter(container, state, callbacks = {}) {
     setTimeout(() => justArrived.delete(id), 900);
   }
 
-  // 4.6 Phase 1: khách đi bộ ra — gắn class vào element live
-  // (dùng khi element còn trong DOM tới lần render sau, vd completeServe)
+  // 4.6 Phase 1+2: khách đi bộ ra — gắn class vào element live
+  // (tìm trong mọi khu: hàng chờ, bàn ăn, khu shipper)
   function applyWalkOut(id) {
-    const el = container.querySelector(`#customer-row .customer[data-id="${id}"]`);
+    const el = container.querySelector(`.customer[data-id="${id}"]:not(.walkout-ghost)`);
     if (el) el.classList.add('walking-out');
   }
 
-  // 4.6 Phase 1: khách đi bộ ra — bản ghost trong #walkout-layer
+  // 4.6 Phase 1+2: khách đi bộ ra — bản ghost trong #walkout-layer
   // (dùng khi renderCustomers chạy ngay sau đó và xóa element gốc)
   function spawnWalkOutGhost(id) {
-    const row = container.querySelector('#customer-row');
     const layer = container.querySelector('#walkout-layer');
-    const el = row && row.querySelector(`.customer[data-id="${id}"]`);
+    const el = container.querySelector(`.customer[data-id="${id}"]:not(.walkout-ghost)`);
     if (!el || !layer) return;
     const base = container.getBoundingClientRect();
     const rect = el.getBoundingClientRect();
@@ -200,8 +230,8 @@ export function renderCounter(container, state, callbacks = {}) {
     setTimeout(() => { if (ghost.isConnected) ghost.remove(); }, 650);
   }
 
-  // 3.1b: chạm vào khách để chọn (toggle)
-  container.querySelector('#customer-row').addEventListener('click', (e) => {
+  // 3.1b: chạm vào khách để chọn (toggle) — áp dụng cho cả 3 khu: hàng chờ, bàn ăn, shipper
+  function onCustomerClick(e) {
     const el = e.target.closest('.customer');
     if (!el) return;
     const id = Number(el.dataset.id);
@@ -209,7 +239,23 @@ export function renderCounter(container, state, callbacks = {}) {
     playSfx('click');
     renderCustomers();
     updateTicket();
+  }
+  ['#customer-row', '#dining-area', '#shipper-zone'].forEach(sel => {
+    container.querySelector(sel).addEventListener('click', onCustomerClick);
   });
+
+  // 4.6 Phase 2: hiện tô phở nhỏ trên bàn 2s sau khi bưng (khách "ăn")
+  function spawnEatingBowl(tableId) {
+    const deco = container.querySelector(`#dining-area .table-spot[data-table="${tableId}"] .table-deco`);
+    if (!deco || !container.isConnected) return;
+    const bowl = document.createElement('img');
+    bowl.className = 'eating-bowl';
+    bowl.src = 'assets/sprites/to-pho-v2.webp';
+    bowl.alt = '';
+    bowl.draggable = false;
+    deco.appendChild(bowl);
+    setTimeout(() => { if (bowl.isConnected) bowl.remove(); }, 2000);
+  }
 
   // 3.4: nút tủ huy hiệu + thử thách trong HUD
   container.querySelector('#btn-badges').addEventListener('click', () => showBadgeCase());
@@ -237,9 +283,12 @@ export function renderCounter(container, state, callbacks = {}) {
     const bubble = document.createElement('div');
     bubble.className = `feedback-bubble mood-${mood}`;
     bubble.innerHTML = `<strong>${name}</strong><span>${text}</span>`;
-    // Đặt ở khu vực khách hàng (trên cùng)
+    // 4.6 Phase 2: #customer-row bị hidden khi mọi khách đều ngồi
+    // → append vào #dining-area (luôn hiện, position: relative) để bong bóng luôn thấy được
+    const dining = container.querySelector('#dining-area');
     const row = container.querySelector('#customer-row');
-    if (row) row.appendChild(bubble);
+    if (dining) dining.appendChild(bubble);
+    else if (row) row.appendChild(bubble);
     else container.appendChild(bubble);
     // Tự xóa sau 3.5s (3s hiện + 0.5s fade)
     setTimeout(() => {
@@ -522,28 +571,47 @@ export function renderCounter(container, state, callbacks = {}) {
 
   // ---------- Task 2.3c: UI khách hàng ----------
 
+  // 4.6 Phase 2: HTML 1 thẻ khách (dùng chung cho 3 khu)
+  function customerCardHTML(c, extraCls = '') {
+    const pct = Math.max(0, (c.patience / c.maxPatience) * 100);
+    const cls = pct > 50 ? 'high' : pct > 25 ? 'mid' : 'low';
+    const walkIn = justArrived.has(c.id) ? ' walking-in' : ''; // 4.6 Phase 1
+    const activeId = cooking ? cookingForId : null;
+    const selId = state.selectedCustomerId;
+    return `
+    <div class="customer${c.id === activeId ? ' serving' : ''}${c.id === selId ? ' selected' : ''}${walkIn}${extraCls ? ' ' + extraCls : ''}" data-id="${c.id}">
+      <img class="customer-avatar" src="${CUSTOMER_SPRITES[c.type]}" alt="${c.name}" draggable="false">
+      <div class="customer-name">${c.name}${c.type === 'shipper' ? ' 🛵' : ''}${c.isAppOrder ? ' <span class="app-badge">APP</span>' : ''}</div>
+      <div class="customer-order">${shortOrderText(c.order)}</div>
+      <div class="patience-bar"><div class="patience-fill ${cls}" style="width:${pct}%"></div></div>
+    </div>`;
+  }
+
   function renderCustomers() {
-    const row = container.querySelector('#customer-row');
     const list = queue.list();
     // 3.1b: xóa chọn nếu khách đã rời hàng
     if (state.selectedCustomerId != null && !list.some(c => c.id === state.selectedCustomerId)) {
       state.selectedCustomerId = null;
     }
-    const activeId = cooking ? cookingForId : null;
-    const selId = state.selectedCustomerId;
-    row.hidden = list.length === 0;
-    row.innerHTML = list.map(c => {
-      const pct = Math.max(0, (c.patience / c.maxPatience) * 100);
-      const cls = pct > 50 ? 'high' : pct > 25 ? 'mid' : 'low';
-      const walkIn = justArrived.has(c.id) ? ' walking-in' : ''; // 4.6 Phase 1
-      return `
-      <div class="customer${c.id === activeId ? ' serving' : ''}${c.id === selId ? ' selected' : ''}${walkIn}" data-id="${c.id}">
-        <img class="customer-avatar" src="${CUSTOMER_SPRITES[c.type]}" alt="${c.name}" draggable="false">
-        <div class="customer-name">${c.name}${c.type === 'shipper' ? ' 🛵' : ''}${c.isAppOrder ? ' <span class="app-badge">APP</span>' : ''}</div>
-        <div class="customer-order">${shortOrderText(c.order)}</div>
-        <div class="patience-bar"><div class="patience-fill ${cls}" style="width:${pct}%"></div></div>
-      </div>`;
-    }).join('');
+    // 4.6 Phase 2: chia 3 khu — shipper → khu riêng; khách thường có bàn → ngồi; còn lại → đứng chờ
+    const shippers = list.filter(c => c.type === 'shipper');
+    const seated = list.filter(c => c.type !== 'shipper' && tableOfCustomer(c.id));
+    const waiting = list.filter(c => c.type !== 'shipper' && !tableOfCustomer(c.id));
+    // 1. Khu chờ (đứng xếp hàng)
+    const row = container.querySelector('#customer-row');
+    row.hidden = waiting.length === 0;
+    row.innerHTML = waiting.map(c => customerCardHTML(c)).join('');
+    // 2. Khu bàn ăn (luôn hiện bàn, khách ngồi vào slot của bàn mình)
+    state.tables.forEach(t => {
+      const slot = container.querySelector(`#dining-area .table-spot[data-table="${t.id}"] .seat-slot`);
+      if (!slot) return;
+      const c = t.occupiedBy != null ? list.find(x => x.id === t.occupiedBy) : null;
+      slot.innerHTML = c ? customerCardHTML(c, 'seated') : '';
+    });
+    // 3. Khu shipper (đứng chờ lấy món)
+    const zone = container.querySelector('#shipper-zone');
+    zone.querySelector('.shipper-list').innerHTML = shippers.map(c => customerCardHTML(c)).join('');
+    zone.hidden = shippers.length === 0;
   }
 
   // Cập nhật thanh kiên nhẫn (không re-render cả hàng)
@@ -586,6 +654,7 @@ export function renderCounter(container, state, callbacks = {}) {
       if (!queue.isFull()) {
         const c = randomCustomer();
         queue.enqueue(c, cooking);
+        if (c.type !== 'shipper') assignTable(c); // 4.6 Phase 2: khách thường ngồi bàn (shipper ra khu riêng)
         markJustArrived(c.id); // 4.6 Phase 1: khách đi bộ vào
         toast(`<img src="assets/icons/bell.webp" class="toast-icon"> Khách mới: ${c.name}!`);
         playSfx('pop');
@@ -609,6 +678,7 @@ export function renderCounter(container, state, callbacks = {}) {
         const wasActive = cooking && cookingForId === c.id;
         spawnWalkOutGhost(c.id); // 4.6 Phase 1: khách bỏ đi cũng đi bộ ra
         queue.removeById(c.id);
+        freeTableOf(c.id); // 4.6 Phase 2: giải phóng bàn khi khách bỏ đi
         if (wasActive) { activeLeft = true; activeName = c.name; }
         leftCount++;
       }
@@ -668,6 +738,7 @@ export function renderCounter(container, state, callbacks = {}) {
         state.stats.daysPlayed++;
         // Xóa hết khách đang chờ
         queue.list().forEach(c => queue.removeById(c.id));
+        freeAllTables(); // 4.6 Phase 2: reset bàn khi qua ngày mới
         cooking = false;
         cookingForId = null; // 3.1b
         state.selectedCustomerId = null; // 3.1b
@@ -796,6 +867,8 @@ export function renderCounter(container, state, callbacks = {}) {
     // 3.3: tính waitRatio trước khi xóa khách khỏi hàng
     const waitRatio = target ? 1 - (target.patience / target.maxPatience) : 0;
     if (target) queue.removeById(target.id);
+    const servedTable = target ? freeTableOf(target.id) : null; // 4.6 Phase 2: giải phóng bàn
+    if (servedTable) spawnEatingBowl(servedTable.id); // 4.6 Phase 2: tô phở trên bàn 2s (khách "ăn")
     if (target) applyWalkOut(target.id); // 4.6 Phase 1: khách đi bộ ra
     cooking = false;
     cookingForId = null;
@@ -921,6 +994,7 @@ export function renderCounter(container, state, callbacks = {}) {
       const cost = calcCost(c.order);
       spawnWalkOutGhost(c.id); // 4.6 Phase 1: khách bom hàng đi bộ ra
       queue.removeById(c.id);
+      freeTableOf(c.id); // 4.6 Phase 2: giải phóng bàn
       if (state.selectedCustomerId === c.id) state.selectedCustomerId = null;
       state.money = Math.max(0, (state.money || 0) - cost);
       updateHUD(container, state);
