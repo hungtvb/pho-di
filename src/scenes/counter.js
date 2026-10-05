@@ -135,11 +135,11 @@ export function renderCounter(container, state, callbacks = {}) {
       <div class="hud-item"><img src="assets/icons/money.webp" class="hud-icon"> <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div>
       <div class="hud-item"><img src="assets/icons/star.webp" class="hud-icon"> <span id="hud-star">${state.stars || 0}</span></div>
       <div class="hud-item"><img src="assets/icons/day.webp" class="hud-icon"> <span id="hud-day">Ngày ${state.day || 1}</span></div>
-      <span id="hud-peak" class="hud-peak" hidden>PEAK</span>
+      <span id="hud-peak" class="hud-peak" hidden><span class="peak-flame"></span>CAO ĐIỂM</span>
       <button id="btn-badges" class="hud-mini-btn" title="Tủ huy hiệu"><img src="assets/icons/star.webp"></button>
       <button id="btn-challenges" class="hud-mini-btn" title="Thử thách hôm nay"><img src="assets/icons/bell.webp"></button>
     </div>
-    <div class="order-ticket">🧾 <span id="order-text">Chờ khách...</span></div>
+    <div class="order-ticket"><span class="ticket-label">ĐƠN</span> <span id="order-text">Chờ khách...</span></div>
     <div class="customer-row" id="customer-row" hidden></div>
     <div class="dining-area" id="dining-area">
       ${[0, 1, 2].map(i => `
@@ -581,7 +581,7 @@ export function renderCounter(container, state, callbacks = {}) {
     return `
     <div class="customer${c.id === activeId ? ' serving' : ''}${c.id === selId ? ' selected' : ''}${walkIn}${extraCls ? ' ' + extraCls : ''}" data-id="${c.id}">
       <img class="customer-avatar" src="${CUSTOMER_SPRITES[c.type]}" alt="${c.name}" draggable="false">
-      <div class="customer-name">${c.name}${c.type === 'shipper' ? ' 🛵' : ''}${c.isAppOrder ? ' <span class="app-badge">APP</span>' : ''}</div>
+      <div class="customer-name">${c.name}${c.type === 'shipper' ? ' <span class="shipper-tag">Shipper</span>' : ''}${c.isAppOrder ? ' <span class="app-badge">APP</span>' : ''}</div>
       <div class="customer-order">${shortOrderText(c.order)}</div>
       <div class="patience-bar"><div class="patience-fill ${cls}" style="width:${pct}%"></div></div>
     </div>`;
