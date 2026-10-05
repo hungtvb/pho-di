@@ -107,6 +107,8 @@ export function renderCounter(container, state, callbacks = {}) {
 
   container.innerHTML = `
     <div class="counter-bg-css"></div>
+    <div id="street"></div>
+    <div id="walkout-layer"></div>
     <div class="hud-top">
       <button id="btn-counter-back" class="btn-back-hud"><img src="assets/icons/back.webp"></button>
       <div class="hud-item"><img src="assets/icons/clock.webp" class="hud-icon"> <span id="hud-time">${state.time || '6:00'}</span></div>
@@ -141,6 +143,62 @@ export function renderCounter(container, state, callbacks = {}) {
       `).join('')}
     </div>
   `;
+
+  // 4.6 Phase 1: người đi bộ ambient trên phố (4 người, loop CSS vô hạn)
+  (function spawnPedestrians() {
+    const street = container.querySelector('#street');
+    if (!street) return;
+    const types = ['ong-gia', 'co-gai', 'shipper', 'ba-cu'].sort(() => Math.random() - 0.5);
+    const dirs = ['walk-r', 'walk-r', 'walk-l', 'walk-l'];
+    types.forEach((type, i) => {
+      const p = document.createElement('div');
+      const duration = 8 + Math.random() * 7; // 8-15s mỗi lượt
+      p.className = `pedestrian ${dirs[i]}`;
+      p.style.animationDuration = `${duration.toFixed(2)}s`;
+      p.style.animationDelay = `${(-Math.random() * duration).toFixed(2)}s`; // phân bố đều, hiện ngay
+      p.style.top = `${28 + Math.random() * 20}px`;
+      const img = document.createElement('img');
+      img.src = CUSTOMER_SPRITES[type];
+      img.alt = '';
+      img.draggable = false;
+      p.appendChild(img);
+      street.appendChild(p);
+    });
+  })();
+
+  // 4.6 Phase 1: khách mới đi bộ vào — theo dõi id để gắn class walking-in khi render
+  const justArrived = new Set();
+  function markJustArrived(id) {
+    justArrived.add(id);
+    setTimeout(() => justArrived.delete(id), 900);
+  }
+
+  // 4.6 Phase 1: khách đi bộ ra — gắn class vào element live
+  // (dùng khi element còn trong DOM tới lần render sau, vd completeServe)
+  function applyWalkOut(id) {
+    const el = container.querySelector(`#customer-row .customer[data-id="${id}"]`);
+    if (el) el.classList.add('walking-out');
+  }
+
+  // 4.6 Phase 1: khách đi bộ ra — bản ghost trong #walkout-layer
+  // (dùng khi renderCustomers chạy ngay sau đó và xóa element gốc)
+  function spawnWalkOutGhost(id) {
+    const row = container.querySelector('#customer-row');
+    const layer = container.querySelector('#walkout-layer');
+    const el = row && row.querySelector(`.customer[data-id="${id}"]`);
+    if (!el || !layer) return;
+    const base = container.getBoundingClientRect();
+    const rect = el.getBoundingClientRect();
+    const ghost = el.cloneNode(true);
+    ghost.classList.add('walkout-ghost');
+    ghost.classList.remove('walking-in', 'walking-out', 'selected', 'serving');
+    ghost.removeAttribute('data-id');
+    ghost.style.left = `${rect.left - base.left}px`;
+    ghost.style.top = `${rect.top - base.top}px`;
+    ghost.style.width = `${rect.width}px`;
+    layer.appendChild(ghost);
+    setTimeout(() => { if (ghost.isConnected) ghost.remove(); }, 650);
+  }
 
   // 3.1b: chạm vào khách để chọn (toggle)
   container.querySelector('#customer-row').addEventListener('click', (e) => {
@@ -477,8 +535,9 @@ export function renderCounter(container, state, callbacks = {}) {
     row.innerHTML = list.map(c => {
       const pct = Math.max(0, (c.patience / c.maxPatience) * 100);
       const cls = pct > 50 ? 'high' : pct > 25 ? 'mid' : 'low';
+      const walkIn = justArrived.has(c.id) ? ' walking-in' : ''; // 4.6 Phase 1
       return `
-      <div class="customer${c.id === activeId ? ' serving' : ''}${c.id === selId ? ' selected' : ''}" data-id="${c.id}">
+      <div class="customer${c.id === activeId ? ' serving' : ''}${c.id === selId ? ' selected' : ''}${walkIn}" data-id="${c.id}">
         <img class="customer-avatar" src="${CUSTOMER_SPRITES[c.type]}" alt="${c.name}" draggable="false">
         <div class="customer-name">${c.name}${c.type === 'shipper' ? ' 🛵' : ''}${c.isAppOrder ? ' <span class="app-badge">APP</span>' : ''}</div>
         <div class="customer-order">${shortOrderText(c.order)}</div>
@@ -527,6 +586,7 @@ export function renderCounter(container, state, callbacks = {}) {
       if (!queue.isFull()) {
         const c = randomCustomer();
         queue.enqueue(c, cooking);
+        markJustArrived(c.id); // 4.6 Phase 1: khách đi bộ vào
         toast(`<img src="assets/icons/bell.webp" class="toast-icon"> Khách mới: ${c.name}!`);
         playSfx('pop');
         if (!cooking) startNextDish();
@@ -547,6 +607,7 @@ export function renderCounter(container, state, callbacks = {}) {
         c.patience -= 1;
         if (c.patience > 0) continue;
         const wasActive = cooking && cookingForId === c.id;
+        spawnWalkOutGhost(c.id); // 4.6 Phase 1: khách bỏ đi cũng đi bộ ra
         queue.removeById(c.id);
         if (wasActive) { activeLeft = true; activeName = c.name; }
         leftCount++;
@@ -735,6 +796,7 @@ export function renderCounter(container, state, callbacks = {}) {
     // 3.3: tính waitRatio trước khi xóa khách khỏi hàng
     const waitRatio = target ? 1 - (target.patience / target.maxPatience) : 0;
     if (target) queue.removeById(target.id);
+    if (target) applyWalkOut(target.id); // 4.6 Phase 1: khách đi bộ ra
     cooking = false;
     cookingForId = null;
     state.selectedCustomerId = null; // 3.1b: reset chọn sau khi giao
@@ -857,6 +919,7 @@ export function renderCounter(container, state, callbacks = {}) {
       const cands = nonCooking();
       const c = cands[Math.floor(Math.random() * cands.length)];
       const cost = calcCost(c.order);
+      spawnWalkOutGhost(c.id); // 4.6 Phase 1: khách bom hàng đi bộ ra
       queue.removeById(c.id);
       if (state.selectedCustomerId === c.id) state.selectedCustomerId = null;
       state.money = Math.max(0, (state.money || 0) - cost);
@@ -996,7 +1059,7 @@ export function renderCounter(container, state, callbacks = {}) {
           isAppOrder: true, // 3.2
           appName: appOrder.app,
         };
-        if (queue.enqueue(c, cooking)) added++;
+        if (queue.enqueue(c, cooking)) { added++; markJustArrived(c.id); } // 4.6 Phase 1: shipper đi bộ vào
       }
       playSfx('success');
       if (added > 0) {
