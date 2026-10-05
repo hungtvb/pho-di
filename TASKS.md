@@ -161,12 +161,12 @@
 
 ### 3.4 Huy hiệu + Thử thách
 **Chi tiết:**
-- [ ] logic/progression.js: check điều kiện realtime
-- [ ] 6 huy hiệu + banner chúc mừng + tủ trưng bày
-- [ ] 3 thử thách/ngày + thử thách tuần
-- [ ] Lưu tiến trình vào save
+- [x] logic/progression.js: check điều kiện realtime
+- [x] 6 huy hiệu + banner chúc mừng + tủ trưng bày
+- [x] 3 thử thách/ngày + thử thách tuần
+- [x] Lưu tiến trình vào save
 
-**Test:** Đạt điều kiện → huy hiệu mở, có thưởng
+**Test:** Đã review + test logic PASS 26/26 (2026-10-05). Fix bug badge "Ngôi sao".
 
 ---
 
