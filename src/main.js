@@ -41,7 +41,6 @@ const CRITICAL_ASSETS = [
 
 // Ảnh màn chơi (preload khi bấm Bắt đầu chơi)
 const COUNTER_ASSETS = [
-  'assets/backgrounds/bg-counter.webp',
   'assets/sprites/banh-pho-v2.webp',
   'assets/sprites/noi-nuoc-dung-v2.webp',
   'assets/sprites/to-pho-v2.webp',
@@ -94,6 +93,7 @@ async function main() {
     day: 1,
     time: '6:00',
     currentStep: 0,
+    dailyCost: 0, // vốn nguyên liệu đã dùng trong ngày (Task 2.4d)
   };
 
   renderIntro(introEl, async () => {
