@@ -7,6 +7,7 @@ import { randomCustomer, nextArrivalInterval, parseHour, isPeakHour } from '../l
 import { createQueue } from '../logic/queue.js';
 import { calcPrice, calcCost, formatVND, DAILY_RENT } from '../logic/economy.js';
 import { rollIncident } from '../logic/incidents.js';
+import { randomAppOrder, shouldHaveAppOrder, rollAppCancel, appCancelDelayMs } from '../logic/appOrders.js';
 
 // Task 2.4b: 18 giây thực = 1 giờ game; đồng hồ chạy 6:00 → 21:00
 const GAME_START_MIN = 6 * 60;   // 6:00
@@ -59,6 +60,8 @@ export function renderCounter(container, state, callbacks = {}) {
   let dishGen = 0; // token chống race: tăng mỗi lần startDish
   let cookingForId = null; // 3.1b: id khách đang được nấu
   let incidentModalOpen = false; // 3.1c: chống modal sự cố chồng lớp
+  let appModalOpen = false; // 3.2: chống modal đơn app chồng lớp
+  let appCustomerIdSeq = 1000000; // 3.2: id riêng cho khách app, tránh trùng arrivals.js
 
   const flow = createTapflow();
   // Chưa có khách → chưa startDish; tap sẽ báo "Chưa có order nào."
@@ -153,7 +156,7 @@ export function renderCounter(container, state, callbacks = {}) {
   let policeModalOpen = false; // chống modal chồng lớp
   function maybePoliceCheck() {
     if (state.ownedPremises) return;
-    if (policeModalOpen) return; // đang mở thì bỏ qua
+    if (policeModalOpen || incidentModalOpen || appModalOpen) return; // đang mở thì bỏ qua
     if (Math.random() >= 0.3) return;
     policeModalOpen = true;
     const fine = 20000 + Math.floor(Math.random() * 81) * 1000; // 20k-100k
@@ -262,7 +265,7 @@ export function renderCounter(container, state, callbacks = {}) {
       return `
       <div class="customer${c.id === activeId ? ' serving' : ''}${c.id === selId ? ' selected' : ''}" data-id="${c.id}">
         <img class="customer-avatar" src="${CUSTOMER_SPRITES[c.type]}" alt="${c.name}" draggable="false">
-        <div class="customer-name">${c.name}${c.type === 'shipper' ? ' 🛵' : ''}</div>
+        <div class="customer-name">${c.name}${c.type === 'shipper' ? ' 🛵' : ''}${c.isAppOrder ? ' <span class="app-badge">APP</span>' : ''}</div>
         <div class="customer-order">${shortOrderText(c.order)}</div>
         <div class="patience-bar"><div class="patience-fill ${cls}" style="width:${pct}%"></div></div>
       </div>`;
@@ -391,6 +394,14 @@ export function renderCounter(container, state, callbacks = {}) {
         renderCustomers();
         toast(`Hết ngày! Trừ mặt bằng ${formatVND(DAILY_RENT)} + vốn ${formatVND(dayCost)}. Ngày ${state.day} bắt đầu!`);
         playSfx('success');
+        // Task 3.2: mở khóa đơn app từ ngày 2
+        if (state.day === 2) {
+          setTimeout(() => {
+            if (!container.isConnected) return;
+            playSfx('pop');
+            toast(`<img src="assets/icons/bell.webp" class="toast-icon"> Đã mở khóa đơn app!`);
+          }, 2000);
+        }
         // Task 2.4e: công an kiểm tra (30%/ngày, bỏ qua nếu đã mua mặt bằng)
         maybePoliceCheck();
         startClock(); // bắt đầu ngày mới
@@ -412,6 +423,10 @@ export function renderCounter(container, state, callbacks = {}) {
         lastIncidentHour = hour;
         const inc = rollIncident(state.day || 1);
         if (inc) showIncidentModal(inc);
+        // 3.2: đơn app (mở khóa ngày 2, ~15%/giờ)
+        else if (shouldHaveAppOrder(state.day || 1) && !queue.isFull()) {
+          showAppOrderModal(randomAppOrder(state.day || 1));
+        }
       }
     }, 1000);
   }
@@ -497,6 +512,19 @@ export function renderCounter(container, state, callbacks = {}) {
       }
       updateHUD(container, state);
       toast(`😊 ${target.name} hài lòng! +${formatVND(price)}${starMsg}`);
+      // 3.2: bom hàng đơn app — 20%, biết sau 6-15s; mất vốn (đã cộng dailyCost lúc bưng)
+      if (target.isAppOrder) {
+        const cost = calcCost(target.order);
+        setTimeout(() => {
+          if (!container.isConnected) return;
+          if (rollAppCancel()) {
+            state.money = Math.max(0, (state.money || 0) - cost);
+            updateHUD(container, state);
+            playSfx('fail');
+            toast(`Bom hàng! ${target.name} (${target.appName}) hủy đơn. Mất vốn ${formatVND(cost)}.`, true);
+          }
+        }, appCancelDelayMs());
+      }
     }
     setTimeout(() => {
       if (!container.isConnected || cooking) return; // đã có món mới đang nấu thì bỏ qua
@@ -506,7 +534,7 @@ export function renderCounter(container, state, callbacks = {}) {
 
   // 3.1c: nhầm tô — tô làm cho thịt A nhưng khách gọi thịt B
   function showWrongBowlModal(target, dishOrder, perfect) {
-    if (incidentModalOpen || policeModalOpen) {
+    if (incidentModalOpen || policeModalOpen || appModalOpen) {
       // đang có modal khác: giao luôn để không kẹt game
       completeServe(target, perfect, true);
       return;
@@ -544,7 +572,7 @@ export function renderCounter(container, state, callbacks = {}) {
 
   // 3.1c: sự cố ngẫu nhiên mỗi giờ
   function showIncidentModal(type) {
-    if (incidentModalOpen || policeModalOpen) return;
+    if (incidentModalOpen || policeModalOpen || appModalOpen) return;
     const nonCooking = () => queue.list().filter(c => !(cooking && c.id === cookingForId));
     if ((type === 'impatient' || type === 'cancelled') && nonCooking().length === 0) return;
     if (type === 'spilled' && !cooking) return;
@@ -654,6 +682,62 @@ export function renderCounter(container, state, callbacks = {}) {
         close();
       });
     }
+  }
+
+  // 3.2: modal đơn app — nhận vào đầu hàng, từ chối thì bỏ qua
+  function showAppOrderModal(appOrder) {
+    if (appModalOpen || incidentModalOpen || policeModalOpen) return;
+    appModalOpen = true;
+    const modal = document.createElement('div');
+    modal.className = 'name-modal';
+    const close = () => { modal.remove(); appModalOpen = false; };
+    const servingLines = appOrder.orders
+      .map((o, i) => `<p class="name-modal-desc">Suất ${i + 1}: ${shortOrderText(o)}</p>`)
+      .join('');
+    modal.innerHTML = `
+      <div class="name-modal-box">
+        <h2>Đơn app mới!</h2>
+        <p class="name-modal-desc"><strong>${appOrder.app}</strong> — ${appOrder.shipperName} đến lấy (${appOrder.servings} suất)</p>
+        ${servingLines}
+        <div class="police-choices">
+          <button class="btn-primary police-btn" data-act="accept">Nhận đơn</button>
+          <button class="btn-primary police-btn" data-act="decline">Từ chối</button>
+        </div>
+      </div>`;
+    container.appendChild(modal);
+    modal.querySelector('[data-act="accept"]').addEventListener('click', () => {
+      // 3.2: mỗi suất thành 1 khách app, ưu tiên lên đầu hàng (type shipper tự nhảy đầu)
+      const maxPatience = 90 + Math.floor(Math.random() * 30);
+      let added = 0;
+      for (const order of appOrder.orders) {
+        const c = {
+          id: appCustomerIdSeq++,
+          type: 'shipper',
+          name: appOrder.shipperName,
+          order,
+          bowls: 1,
+          patience: maxPatience,
+          maxPatience,
+          isAppOrder: true, // 3.2
+          appName: appOrder.app,
+        };
+        if (queue.enqueue(c, cooking)) added++;
+      }
+      playSfx('success');
+      if (added > 0) {
+        toast(`Đã nhận ${added} suất từ ${appOrder.app}!`);
+        renderCustomers();
+        updateTicket();
+        if (!cooking) startNextDish();
+      } else {
+        toast('Hàng đầy, không nhận được đơn!', true);
+      }
+      close();
+    });
+    modal.querySelector('[data-act="decline"]').addEventListener('click', () => {
+      playSfx('click');
+      close();
+    });
   }
 
   container.querySelectorAll('.station').forEach(btn => {
