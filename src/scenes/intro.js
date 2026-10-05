@@ -20,7 +20,7 @@ export function renderIntro(container, onStart) {
     <div class="intro-overlay"></div>
     <div class="signboard-name" id="signboard-name">${savedName ? escapeHtml(savedName) : ''}</div>
     <div class="intro-content">
-      <div class="intro-logo"><img src="assets/sprites/to-pho-v2.webp" alt="Phở Đi!" style="width:80px;height:80px;object-fit:contain;"></div>
+      <div class="intro-logo"><img src="assets/logo-pho.webp" alt="Phở Đi!" style="width:100px;height:100px;object-fit:contain;"></div>
       <h1 class="intro-title">Phở Đi!</h1>
       ${savedName
         ? `<p class="intro-shop">Quán <strong>${escapeHtml(savedName)}</strong></p>`
