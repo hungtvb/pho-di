@@ -4,6 +4,7 @@
 import { renderIntro } from './scenes/intro.js';
 import { renderCounter } from './scenes/counter.js';
 import { unlockAudio, playMusic, playSfx, toggleMusic, toggleSfx, getSettings } from './audio.js';
+import { saveGame, loadGame, clearSave, hasSave, applySave } from './logic/save.js'; // Task 3.5
 
 const VERSION = '0.1.0';
 
@@ -104,9 +105,33 @@ async function main() {
     },
   };
 
-  renderIntro(introEl, async () => {
-    console.log('[Phở Đi!] Bắt đầu chơi → preload màn quầy');
+  // Task 3.5: kiểm tra có save không để hiện nút "Bán tiếp"
+  const existingSave = hasSave();
+
+  // Auto-save mỗi 5s + khi rời trang (Task 3.5)
+  let saveTimer = null;
+  function startAutoSave() {
+    if (saveTimer) clearInterval(saveTimer);
+    saveTimer = setInterval(() => saveGame(gameState), 5000);
+  }
+  window.addEventListener('beforeunload', () => saveGame(gameState));
+
+  async function enterCounter(opts = {}) {
+    const { fromSave = false, newGame = false } = opts;
+    console.log('[Phở Đi!] Vào quầy:', fromSave ? 'tiếp tục save' : 'chơi mới');
     playSfx('click');
+
+    if (newGame) clearSave();
+
+    // Task 3.5: load save nếu tiếp tục
+    let paused = false;
+    if (fromSave) {
+      const data = loadGame();
+      if (data) {
+        applySave(gameState, data);
+        paused = true; // tạm dừng, chờ user bấm "Bán tiếp"
+      }
+    }
 
     // Hiện loading khi sang màn chơi
     const loadingEl = document.getElementById('screen-loading');
@@ -122,14 +147,31 @@ async function main() {
     }
 
     playMusic();
+    // Xóa nội dung quầy cũ (tránh render chồng khi chơi lại)
+    counterEl.innerHTML = '';
     renderCounter(counterEl, gameState, {
       onHotspot: (id) => {
         console.log('[Phở Đi!] chạm hotspot:', id, '(tapflow ở task 2.2)');
       },
-      onBack: () => showScreen('screen-intro'),
+      onBack: () => {
+        saveGame(gameState); // Task 3.5: lưu khi về intro
+        showScreen('screen-intro');
+        // Vẽ lại intro để cập nhật nút Bán tiếp
+        renderIntro(introEl, handleIntroStart, { hasSave: hasSave() });
+      },
+      paused,
     });
     showScreen('screen-counter');
-  });
+    startAutoSave();
+  }
+
+  function handleIntroStart(action) {
+    // action: 'new' | 'continue'
+    if (action === 'continue') enterCounter({ fromSave: true });
+    else enterCounter({ newGame: action === 'new' && hasSave() });
+  }
+
+  renderIntro(introEl, handleIntroStart, { hasSave: existingSave });
 }
 
 main().catch(err => console.error('[Phở Đi!] Lỗi khởi động:', err));
