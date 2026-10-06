@@ -1067,13 +1067,31 @@ h1, h2, h3, .btn-primary {
   width: 54px;
   pointer-events: none;
 }
-.pedestrian img {
+/* Walk cycle frame-by-frame cho người đi bộ: 2 frame đổi nhau bằng CSS thuần
+   (opacity animation được GPU composite, không tốn JS timer — nhẹ cho mobile) */
+.pedestrian .walk-frames {
+  position: relative;
+  display: block;
+  width: 54px;
+  height: 54px;
+  animation: ped-bob 0.6s ease-in-out infinite;
+}
+.pedestrian .walk-frames img {
+  position: absolute;
+  inset: 0;
   width: 54px;
   height: 54px;
   border-radius: 50%;
   object-fit: cover;
   display: block;
-  animation: ped-bob 0.6s ease-in-out infinite;
+}
+.pedestrian .walk-frames img.walk-f2 {
+  animation: walk-frame-swap 0.5s linear infinite;
+}
+/* Đổi 2 frame mỗi 250ms: nửa đầu hiện frame 1, nửa sau hiện frame 2 */
+@keyframes walk-frame-swap {
+  0%, 49.9% { opacity: 0; }
+  50%, 100% { opacity: 1; }
 }
 .pedestrian.walk-r { animation: walk-right linear infinite; }
 .pedestrian.walk-l { animation: walk-left linear infinite; }
@@ -1114,6 +1132,37 @@ h1, h2, h3, .btn-primary {
   pointer-events: none;
 }
 
+/* Walk cycle frame-by-frame cho khách: avatar bọc trong wrap, walk frames đè lên khi đi */
+/* Mặc định walk frames ẩn — chỉ hiện khi walking-in / walking-out / ghost */
+.customer-avatar-wrap {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 44px;
+}
+.customer .walk-frames {
+  display: none;
+  position: absolute;
+  inset: 0;
+}
+.customer .walk-frames img {
+  position: absolute;
+  inset: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+/* Đi vào: hiện walk frames, ẩn avatar tĩnh (JS gỡ class sau 900ms) */
+.customer.walking-in .walk-frames { display: block; }
+.customer.walking-in .walk-frames .walk-f2 { animation: walk-frame-swap 0.5s linear infinite; }
+.customer.walking-in .customer-avatar { display: none; }
+/* Đi ra: dùng walk frames suốt lúc đi */
+.customer.walking-out .walk-frames { display: block; }
+.customer.walking-out .walk-frames .walk-f2 { animation: walk-frame-swap 0.5s linear infinite; }
+.customer.walking-out .customer-avatar { display: none; }
+
 /* Layer chứa ghost walk-out (không bị renderCustomers innerHTML xóa) */
 #walkout-layer {
   position: absolute;
@@ -1129,6 +1178,10 @@ h1, h2, h3, .btn-primary {
   pointer-events: none;
   animation: walk-out 0.6s ease-in forwards;
 }
+/* Ghost đi ra cũng dùng walk frames (clone từ card, nhưng class walking-out đã bị gỡ) */
+.customer.walkout-ghost .walk-frames { display: block; }
+.customer.walkout-ghost .walk-frames .walk-f2 { animation: walk-frame-swap 0.5s linear infinite; }
+.customer.walkout-ghost .customer-avatar { display: none; }
 /* 4.6 Phase 2: ghost giữ class seated → .customer.seated (cùng specificity, viết sau)
    ghi đè animation. Rule specificity cao hơn để walk-out thắng idle-bob-seated. */
 .customer.walkout-ghost.seated {
