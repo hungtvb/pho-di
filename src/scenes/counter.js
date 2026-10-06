@@ -155,6 +155,7 @@ export function renderCounter(container, state, callbacks = {}) {
   container.innerHTML = `
     <div class="counter-bg-css"></div>
     <div id="street"></div>
+    <div class="sidewalk"></div>
     <div id="walkout-layer"></div>
     <div class="hud-top">
       <button id="btn-counter-back" class="btn-back-hud"><img src="assets/icons/back.webp"></button>
