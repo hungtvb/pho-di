@@ -211,7 +211,7 @@ export function renderCounter(container, state, callbacks = {}) {
       p.className = `pedestrian ${dirs[i]}`;
       p.style.animationDuration = `${duration.toFixed(2)}s`;
       p.style.animationDelay = `${(-Math.random() * duration).toFixed(2)}s`; // phân bố đều, hiện ngay
-      p.style.top = `${28 + Math.random() * 20}px`;
+      p.style.top = `${Math.random() * 12}px`; // đường cao 70px, người cao 54px
       // Walk cycle frame-by-frame: 2 frame đổi nhau bằng CSS (pure CSS, không JS timer)
       const frames = document.createElement('span');
       frames.className = 'walk-frames';
