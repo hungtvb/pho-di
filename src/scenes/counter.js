@@ -692,6 +692,7 @@ export function renderCounter(container, state, callbacks = {}) {
     const selId = state.selectedCustomerId;
     return `
     <div class="customer${c.id === activeId ? ' serving' : ''}${c.id === selId ? ' selected' : ''}${walkIn}${extraCls ? ' ' + extraCls : ''}" data-id="${c.id}">
+      ${c.type === 'shipper' ? '<span class="shipper-tag">Shipper</span>' : ''}
       <span class="customer-avatar-wrap">
         <img class="customer-avatar" src="${CUSTOMER_SPRITES[c.type]}" alt="${c.name}" draggable="false">
         <span class="walk-frames" aria-hidden="true">
@@ -699,7 +700,7 @@ export function renderCounter(container, state, callbacks = {}) {
           <img class="walk-f2" src="${WALK_SPRITES[c.type][1]}" alt="" draggable="false">
         </span>
       </span>
-      <div class="customer-name">${c.name}${c.type === 'shipper' ? ' <span class="shipper-tag">Shipper</span>' : ''}${c.isAppOrder ? ' <span class="app-badge">APP</span>' : ''}</div>
+      <div class="customer-name">${c.name}${c.isAppOrder ? ' <span class="app-badge">APP</span>' : ''}</div>
       <div class="customer-order">${shortOrderText(c.order)}</div>
       <div class="patience-bar"><div class="patience-fill ${cls}" style="width:${pct}%"></div></div>
     </div>`;
