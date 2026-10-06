@@ -1168,7 +1168,7 @@ h1, h2, h3, .btn-primary {
   transform: translateX(-50%);
   width: 80px;
   height: 46px;
-  z-index: 3;
+  z-index: 1;
   pointer-events: none;
 }
 .table-top {
