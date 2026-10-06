@@ -73,12 +73,12 @@ export function renderCounter(container, state, callbacks = {}) {
     'shipper': 'assets/sprites/shipper-v2.webp',
     'ba-cu': 'assets/sprites/ba-cu-v2.webp',
   };
-  // Walk cycle frames (2 frame/nhân vật) cho animation đi bộ frame-by-frame
+  // Walk cycle frames (2 frame/nhân vật, mặt nghiêng nhìn phải) cho animation đi bộ frame-by-frame
   const WALK_SPRITES = {
-    'ong-gia': ['assets/sprites/ong-gia-walk1.webp', 'assets/sprites/ong-gia-walk2.webp'],
-    'co-gai': ['assets/sprites/co-gai-walk1.webp', 'assets/sprites/co-gai-walk2.webp'],
-    'shipper': ['assets/sprites/shipper-walk1.webp', 'assets/sprites/shipper-walk2.webp'],
-    'ba-cu': ['assets/sprites/ba-cu-walk1.webp', 'assets/sprites/ba-cu-walk2.webp'],
+    'ong-gia': ['assets/sprites/ong-gia-side-walk1.webp', 'assets/sprites/ong-gia-side-walk2.webp'],
+    'co-gai': ['assets/sprites/co-gai-side-walk1.webp', 'assets/sprites/co-gai-side-walk2.webp'],
+    'shipper': ['assets/sprites/shipper-side-walk1.webp', 'assets/sprites/shipper-side-walk2.webp'],
+    'ba-cu': ['assets/sprites/ba-cu-side-walk1.webp', 'assets/sprites/ba-cu-side-walk2.webp'],
   };
   // Preload walk frames để đổi frame không giật
   Object.values(WALK_SPRITES).flat().forEach(src => { const im = new Image(); im.src = src; });
