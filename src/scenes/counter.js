@@ -154,8 +154,6 @@ export function renderCounter(container, state, callbacks = {}) {
 
   container.innerHTML = `
     <div class="counter-bg-css"></div>
-    <div id="street"></div>
-    <div class="sidewalk"></div>
     <div id="walkout-layer"></div>
     <div class="hud-top">
       <button id="btn-counter-back" class="btn-back-hud"><img src="assets/icons/back.webp"></button>
@@ -170,6 +168,8 @@ export function renderCounter(container, state, callbacks = {}) {
       <button id="btn-minigame" class="hud-mini-btn" title="Chuẩn bị"><img src="assets/icons/order.webp"></button>
     </div>
     <div class="order-ticket"><span class="ticket-label">ĐƠN</span> <span id="order-text">Chờ khách...</span></div>
+    <div id="street"></div>
+    <div class="sidewalk"></div>
     <div class="customer-row" id="customer-row" hidden></div>
     <div class="dining-area" id="dining-area">
       ${[0, 1, 2].map(i => `
@@ -178,7 +178,7 @@ export function renderCounter(container, state, callbacks = {}) {
           <div class="table-deco"><div class="table-top"></div><div class="chair chair-l"></div><div class="chair chair-r"></div></div>
         </div>`).join('')}
     </div>
-    <div class="shipper-zone" id="shipper-zone" hidden>
+    <div class="shipper-zone" id="shipper-zone">
       <div class="shipper-sign">Chờ lấy món</div>
       <div class="shipper-list"></div>
     </div>
@@ -729,10 +729,12 @@ export function renderCounter(container, state, callbacks = {}) {
       const c = t.occupiedBy != null ? list.find(x => x.id === t.occupiedBy) : null;
       slot.innerHTML = c ? customerCardHTML(c, 'seated') : '';
     });
-    // 3. Khu shipper (đứng chờ lấy món)
+    // 3. Khu shipper (đứng chờ lấy món) — luôn chiếm chỗ, hiện placeholder khi trống
     const zone = container.querySelector('#shipper-zone');
-    zone.querySelector('.shipper-list').innerHTML = shippers.map(c => customerCardHTML(c)).join('');
-    zone.hidden = shippers.length === 0;
+    const shipperList = zone.querySelector('.shipper-list');
+    shipperList.innerHTML = shippers.length
+      ? shippers.map(c => customerCardHTML(c)).join('')
+      : '<div class="shipper-empty">Chưa có shipper</div>';
   }
 
   // Cập nhật thanh kiên nhẫn (không re-render cả hàng)
