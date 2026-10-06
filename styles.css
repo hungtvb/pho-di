@@ -1095,6 +1095,8 @@ h1, h2, h3, .btn-primary {
 }
 .pedestrian.walk-r { animation: walk-right linear infinite; }
 .pedestrian.walk-l { animation: walk-left linear infinite; }
+/* Lật ngang người đi chiều phải→trái (lật trên img, không conflict với ped-bob trên .walk-frames) */
+.pedestrian.walk-l .walk-frames img { transform: scaleX(-1); }
 @keyframes walk-right {
   from { transform: translateX(-90px); }
   to { transform: translateX(110vw); }
