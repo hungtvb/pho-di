@@ -100,7 +100,7 @@ const GAMES = {
     const spawn = () => {
       if (!stage.isConnected || finished) return;
       const b = document.createElement('button');
-      const size = 14 + Math.random() * 30; // 14–44px
+      const size = 34 + Math.random() * 20; // 34–54px (chuẩn touch >=34px)
       b.className = 'bubble';
       b.style.width = b.style.height = `${size.toFixed(0)}px`;
       b.style.left = `${6 + Math.random() * 80}%`;
