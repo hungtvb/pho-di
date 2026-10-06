@@ -707,6 +707,10 @@ h1, h2, h3, .btn-primary {
   align-items: center;
   gap: 4px;
 }
+/* Bug #7: display:inline-flex thắng [hidden] -> badge luôn hiện; ép ẩn bằng !important */
+.hud-peak[hidden] {
+  display: none !important;
+}
 /* 4.3: icon ngọn lửa vẽ bằng CSS cho badge giờ cao điểm */
 .peak-flame {
   display: inline-block;
