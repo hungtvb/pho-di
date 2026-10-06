@@ -1045,14 +1045,17 @@ export function renderCounter(container, state, callbacks = {}) {
         if (!container.isConnected) return;
         showFeedbackBubble(fbName, fbMood, fbText);
       }, 4000);
-      // 3.2: bom hàng đơn app — 20%, biết sau 6-15s; mất vốn (đã cộng dailyCost lúc bưng)
+      // 3.2: bom hàng đơn app — 20%, biết sau 6-15s; mất vốn 1 lần duy nhất:
+      // trừ money trực tiếp và hoàn tác dailyCost đã cộng lúc bưng (tránh trừ 2 lần ở cuối ngày)
       // (giữ nguyên: bom hàng không trừ sao, chỉ trừ vốn)
       if (target.isAppOrder) {
         const cost = calcCost(target.order);
         setTimeout(() => {
           if (!container.isConnected) return;
-          if (rollAppCancel()) {
+          // Bug #14 fix: dùng kết quả roll chung của cả đơn, không roll riêng từng suất
+          if (target.willCancel) {
             state.money = Math.max(0, (state.money || 0) - cost);
+            state.dailyCost = Math.max(0, (state.dailyCost || 0) - cost);
             updateHUD(container, state);
             playSfx('fail');
             toast(`Bom hàng! ${target.name} (${target.appName}) hủy đơn. Mất vốn ${formatVND(cost)}.`, true);
@@ -1245,6 +1248,8 @@ export function renderCounter(container, state, callbacks = {}) {
       // 3.2: mỗi suất thành 1 khách app, ưu tiên lên đầu hàng (type shipper tự nhảy đầu)
       const maxPatience = 90 + Math.floor(Math.random() * 30);
       let added = 0;
+      // Bug #14 fix: roll bom hàng 1 lần cho cả đơn (20%), không phải từng suất
+      const willCancel = rollAppCancel();
       for (const order of appOrder.orders) {
         const c = {
           id: appCustomerIdSeq++,
@@ -1256,6 +1261,7 @@ export function renderCounter(container, state, callbacks = {}) {
           maxPatience,
           isAppOrder: true, // 3.2
           appName: appOrder.app,
+          willCancel, // Bug #14: kết quả bom hàng chung cho cả đơn
         };
         if (queue.enqueue(c, cooking)) { added++; markJustArrived(c.id); } // 4.6 Phase 1: shipper đi bộ vào
       }
