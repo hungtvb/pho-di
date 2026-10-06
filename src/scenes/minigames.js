@@ -1,6 +1,6 @@
 // Task 4.1: Minigame chuẩn bị — 4 minigame đơn giản, không chấm điểm.
 // Làm xong 1 minigame → buff +5% tiền bán trong ngày hiện tại.
-// Mỗi minigame chỉ làm lại được sau 2 ngày (track state.lastMinigame).
+// Mỗi minigame chỉ làm lại được sau 2 ngày (track riêng từng game: state.minigameCooldown).
 
 export const MINIGAMES = [
   { id: 'ninh-xuong', name: 'Ninh xương', desc: 'Chạm 3 bong bóng to nhất', icon: 'assets/sprites/noi-nuoc-dung-v2.webp' },
@@ -12,11 +12,12 @@ export const MINIGAMES = [
 export const MINIGAME_COOLDOWN_DAYS = 2;
 export const MINIGAME_BUFF_PCT = 0.05; // +5% tiền bán trong ngày
 
-// Kiểm tra có được chơi minigame không (cooldown 2 ngày)
-export function canPlayMinigame(state) {
-  const lm = state.lastMinigame;
-  if (!lm || typeof lm.day !== 'number') return { ok: true, waitDays: 0 };
-  const diff = (state.day || 1) - lm.day;
+// Kiểm tra có được chơi minigame không (cooldown 2 ngày, tính riêng từng game)
+export function canPlayMinigame(state, gameId) {
+  const cd = state.minigameCooldown;
+  const lastDay = (cd && typeof cd === 'object') ? cd[gameId] : undefined;
+  if (typeof lastDay !== 'number') return { ok: true, waitDays: 0 };
+  const diff = (state.day || 1) - lastDay;
   if (diff >= MINIGAME_COOLDOWN_DAYS) return { ok: true, waitDays: 0 };
   return { ok: false, waitDays: Math.max(0, MINIGAME_COOLDOWN_DAYS - diff) };
 }
@@ -30,19 +31,19 @@ export function getMinigameBuff(state) {
 
 // Modal chọn minigame. deps: { toast(msg, isErr), sfx(name) }
 export function showMinigameMenu(container, state, deps) {
-  const { ok, waitDays } = canPlayMinigame(state);
+  const cards = MINIGAMES.map(m => ({ meta: m, ...canPlayMinigame(state, m.id) }));
   const modal = document.createElement('div');
   modal.className = 'name-modal minigame-modal';
   modal.innerHTML = `
     <div class="name-modal-box minigame-menu">
       <h2>Chuẩn bị</h2>
-      <p class="name-modal-desc">Xong 1 minigame → +5% tiền bán hôm nay${ok ? '' : ` (chơi lại sau ${waitDays} ngày)`}</p>
+      <p class="name-modal-desc">Xong 1 minigame → +5% tiền bán hôm nay</p>
       <div class="minigame-grid">
-        ${MINIGAMES.map(m => `
+        ${cards.map(({ meta: m, ok, waitDays }) => `
           <button class="minigame-card" data-game="${m.id}" ${ok ? '' : 'disabled'}>
             <img src="${m.icon}" alt="${m.name}" draggable="false">
             <div class="minigame-name">${m.name}</div>
-            <div class="minigame-desc">${m.desc}</div>
+            <div class="minigame-desc">${ok ? m.desc : `Chơi lại sau ${waitDays} ngày`}</div>
           </button>`).join('')}
       </div>
       <button class="btn-primary" data-act="close">Đóng</button>
@@ -50,11 +51,9 @@ export function showMinigameMenu(container, state, deps) {
   container.appendChild(modal);
   deps.sfx('click');
   modal.querySelector('[data-act="close"]').addEventListener('click', () => { modal.remove(); deps.sfx('click'); });
-  if (ok) {
-    modal.querySelectorAll('.minigame-card').forEach(btn => {
-      btn.addEventListener('click', () => openMinigame(modal, container, state, btn.dataset.game, deps));
-    });
-  }
+  modal.querySelectorAll('.minigame-card:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', () => openMinigame(modal, container, state, btn.dataset.game, deps));
+  });
 }
 
 function openMinigame(modal, container, state, id, deps) {
@@ -73,7 +72,8 @@ function openMinigame(modal, container, state, id, deps) {
 
 function finishMinigame(container, state, id, deps, stage) {
   if (!stage.isConnected) return;
-  state.lastMinigame = { id, day: state.day || 1 };
+  const cd = (state.minigameCooldown && typeof state.minigameCooldown === 'object') ? state.minigameCooldown : {};
+  state.minigameCooldown = { ...cd, [id]: state.day || 1 };
   state.minigameBuff = { day: state.day || 1, pct: MINIGAME_BUFF_PCT };
   deps.sfx('success');
   stage.innerHTML = `<div class="minigame-done">Chuẩn bị xong!<span>+5% tiền bán hôm nay</span></div>`;
