@@ -321,6 +321,7 @@ h1, h2, h3, .btn-primary {
 .station-layer {
   position: relative;
   z-index: 1;
+  flex: none;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
@@ -459,6 +460,7 @@ h1, h2, h3, .btn-primary {
 .order-ticket {
   position: relative;
   z-index: 2;
+  flex: none;
   margin-top: 6px;
   padding: 0.35rem 0.9rem;
   background: #fffbe8;
@@ -550,6 +552,7 @@ h1, h2, h3, .btn-primary {
 .customer-row {
   position: relative;
   z-index: 2;
+  flex: none;
   display: flex;
   gap: 8px;
   justify-content: center;
@@ -1058,9 +1061,8 @@ h1, h2, h3, .btn-primary {
 
 /* Phố đi bộ phía sau quầy (ambient, không tương tác) */
 #street {
-  position: absolute;
-  top: 13%;
-  left: 0;
+  position: relative;
+  flex: none;
   width: 100%;
   height: 110px;
   overflow: hidden;
@@ -1085,9 +1087,8 @@ h1, h2, h3, .btn-primary {
 }
 /* Dải vỉa hè phân cách đường và khu trong quán */
 .sidewalk {
-  position: absolute;
-  top: calc(13% + 110px);
-  left: 0;
+  position: relative;
+  flex: none;
   width: 100%;
   height: 12px;
   background: #C9CDD2;
@@ -1242,6 +1243,7 @@ h1, h2, h3, .btn-primary {
 .dining-area {
   position: relative;
   z-index: 2;
+  flex: none;
   display: flex;
   gap: 8px;
   justify-content: center;
@@ -1251,6 +1253,7 @@ h1, h2, h3, .btn-primary {
   border: 2px solid #D9B77C;
   border-radius: 14px;
   padding: 8px 6px;
+  box-sizing: border-box;
 }
 .table-spot {
   flex: 1 1 0;
@@ -1397,18 +1400,29 @@ h1, h2, h3, .btn-primary {
   pointer-events: none;
 }
 
-/* Khu shipper đứng chờ lấy món */
+/* Khu shipper đứng chờ lấy món — luôn chiếm chỗ, không đẩy layout khi ẩn/hiện */
 .shipper-zone {
   position: relative;
   z-index: 2;
+  flex: none;
   width: calc(100% - 24px);
+  min-height: 72px;
   margin-top: 6px;
   border: 2px dashed #c8955c;
   border-radius: 12px;
   background: rgba(255, 248, 235, 0.88);
   padding: 4px 6px 8px;
+  box-sizing: border-box;
 }
-.shipper-zone[hidden] { display: none; }
+.shipper-empty {
+  text-align: center;
+  color: #b99a6b;
+  font-family: 'Baloo 2', cursive;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 14px 0;
+  opacity: 0.55;
+}
 .shipper-sign {
   font-family: 'Baloo 2', cursive;
   font-size: 0.7rem;
