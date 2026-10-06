@@ -7,7 +7,7 @@ const SAVE_KEY = 'pho-di/v1';
 const CURRENT_VERSION = 1;
 
 // Những field được lưu (không lưu queue/timer/modal — khi load, queue trống)
-const SAVE_FIELDS = ['money', 'stars', 'day', 'time', 'dailyCost', 'dailyRevenue', 'stats', 'inventory', 'ownedPremises', 'unlockedMeats', 'minigameBuff', 'lastMinigame'];
+const SAVE_FIELDS = ['money', 'stars', 'day', 'time', 'dailyCost', 'dailyRevenue', 'stats', 'inventory', 'ownedPremises', 'unlockedMeats', 'minigameBuff', 'minigameCooldown'];
 
 /**
  * Lưu state game vào localStorage.
@@ -91,6 +91,12 @@ export function clearSave() {
 export function applySave(state, data) {
   for (const f of SAVE_FIELDS) {
     if (data[f] !== undefined) state[f] = data[f];
+  }
+  // Migrate save cũ (lastMinigame global) → cooldown riêng từng game
+  if (data.lastMinigame && typeof data.lastMinigame === 'object' && data.lastMinigame.id) {
+    if (!state.minigameCooldown || typeof state.minigameCooldown !== 'object') {
+      state.minigameCooldown = { [data.lastMinigame.id]: data.lastMinigame.day || 1 };
+    }
   }
   // Đảm bảo stats có đủ field mới (save cũ thiếu field)
   if (state.stats && typeof state.stats === 'object') {
