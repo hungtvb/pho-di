@@ -26,6 +26,7 @@ html, body {
 #game {
   position: relative;
   width: 100vw;
+  height: 100vh;
   height: 100dvh;
   max-width: 430px;
   max-height: 920px;
@@ -41,6 +42,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  transition: opacity 0.3s;
 }
 .screen.active { display: flex; }
 
@@ -376,11 +378,25 @@ h1, h2, h3, .btn-primary {
   position: relative;
   z-index: 2;
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 0.5rem 0.4rem;
+  background: linear-gradient(180deg, rgba(42,26,18,0.75), rgba(42,26,18,0.45));
+}
+/* UI major #1: HUD chia 2 hàng theo group */
+.hud-row {
+  display: flex;
   justify-content: space-around;
   align-items: center;
   width: 100%;
-  padding: 0.6rem 0.4rem;
-  background: linear-gradient(180deg, rgba(42,26,18,0.75), rgba(42,26,18,0.45));
+  gap: 4px;
+}
+/* Nhóm 4 nút mini HUD hàng 1 */
+.hud-mini-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .hud-item {
   font-family: 'Baloo 2', cursive;
@@ -590,7 +606,7 @@ h1, h2, h3, .btn-primary {
   line-height: 1.2;
 }
 .customer-order {
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   color: #8b5e34;
   line-height: 1.2;
   white-space: nowrap;
@@ -1374,7 +1390,7 @@ h1, h2, h3, .btn-primary {
   border-radius: 50%;
   background: rgba(255,255,255,0.85);
   filter: blur(1px);
-  animation: steam-rise 1.2s ease-out infinite;
+  animation: steam-rise-table 1.2s ease-out infinite;
 }
 .table-deco.eating .table-top::before {
   content: "";
@@ -1386,9 +1402,9 @@ h1, h2, h3, .btn-primary {
   border-radius: 50%;
   background: rgba(255,255,255,0.7);
   filter: blur(1px);
-  animation: steam-rise 1.2s ease-out 0.4s infinite;
+  animation: steam-rise-table 1.2s ease-out 0.4s infinite;
 }
-@keyframes steam-rise {
+@keyframes steam-rise-table {
   0% { transform: translateY(8px) scaleX(1); opacity: 0; }
   35% { opacity: 0.9; }
   100% { transform: translateY(-14px) translateX(5px) scaleX(1.7); opacity: 0; }
@@ -1495,6 +1511,11 @@ h1, h2, h3, .btn-primary {
 .minigame-card img { width: 56px; height: 56px; object-fit: contain; display: block; margin: 0 auto 6px; }
 .minigame-name { font-weight: bold; font-size: 14px; color: #a83232; }
 .minigame-desc { font-size: 11px; color: #6b4a2f; margin-top: 2px; }
+/* UI #6: modal minigame không tràn màn hình thấp */
+.name-modal-box.minigame-menu {
+  max-height: 80vh;
+  overflow-y: auto;
+}
 .minigame-stage {
   position: relative;
   min-height: 270px;
