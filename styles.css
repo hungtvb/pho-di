@@ -1271,7 +1271,7 @@ h1, h2, h3, .btn-primary {
   position: relative;
   z-index: 2;
 }
-/* Bàn + ghế vẽ bằng CSS (không cần asset mới) */
+/* Bàn gỗ chibi vẽ bằng CSS (không cần asset mới) */
 .table-deco {
   position: absolute;
   left: 50%;
@@ -1282,6 +1282,21 @@ h1, h2, h3, .btn-primary {
   z-index: 1;
   pointer-events: none;
 }
+/* Chân bàn trụ */
+.table-deco::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 22px;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 22px;
+  background: linear-gradient(90deg, #a96f2c 0%, #d99a4e 45%, #b57e3f 100%);
+  border: 3px solid #6B4226;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+}
+/* Mặt bàn gỗ có vân */
 .table-top {
   position: absolute;
   left: 50%;
@@ -1290,21 +1305,72 @@ h1, h2, h3, .btn-primary {
   width: 66px;
   height: 28px;
   border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 35%, #eab268 0%, #cf9040 60%, #a96f2c 100%);
-  border: 2px solid #8a5a22;
-  box-shadow: 0 3px 0 #8a5a22;
+  background:
+    repeating-linear-gradient(178deg, rgba(107,66,38,0.22) 0 2px, transparent 2px 7px),
+    radial-gradient(ellipse at 50% 35%, #f2c078 0%, #dd9f52 55%, #b57e3f 100%);
+  border: 3px solid #6B4226;
+  box-shadow: 0 3px 0 #6B4226;
 }
+/* Vòng vân gỗ nổi giữa mặt bàn */
+.table-top::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid rgba(107,66,38,0.4);
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+/* Ghế đẩu gỗ 2 bên */
 .chair {
   position: absolute;
   bottom: 0;
-  width: 20px;
-  height: 16px;
-  background: #b57e3f;
-  border: 2px solid #8a5a22;
-  border-radius: 6px 6px 3px 3px;
+  width: 22px;
+  height: 18px;
+  background:
+    repeating-linear-gradient(90deg, rgba(107,66,38,0.22) 0 2px, transparent 2px 6px),
+    linear-gradient(180deg, #d99a4e 0%, #b57e3f 100%);
+  border: 3px solid #6B4226;
+  border-radius: 8px 8px 4px 4px;
+  box-shadow: 0 2px 0 #6B4226;
 }
-.chair-l { left: 4px; }
-.chair-r { right: 4px; }
+.chair-l { left: 3px; }
+.chair-r { right: 3px; }
+
+/* Khói bốc khi khách đang ăn */
+.table-deco.eating::after {
+  content: "";
+  position: absolute;
+  left: 44%;
+  top: -28px;
+  width: 5px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  filter: blur(1px);
+  animation: steam-rise 1.2s ease-out infinite;
+}
+.table-deco.eating .table-top::before {
+  content: "";
+  position: absolute;
+  left: 60%;
+  top: -30px;
+  width: 4px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.7);
+  filter: blur(1px);
+  animation: steam-rise 1.2s ease-out 0.4s infinite;
+}
+@keyframes steam-rise {
+  0% { transform: translateY(8px) scaleX(1); opacity: 0; }
+  35% { opacity: 0.9; }
+  100% { transform: translateY(-14px) translateX(5px) scaleX(1.7); opacity: 0; }
+}
 
 /* Khách ngồi: nhỏ hơn (scale 0.8, bake vào keyframes vì idle-bob ghi đè transform) */
 @keyframes idle-bob-seated {
