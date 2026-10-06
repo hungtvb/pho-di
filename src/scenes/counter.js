@@ -186,16 +186,22 @@ export function renderCounter(container, state, callbacks = {}) {
     <div class="counter-bg-css"></div>
     <div id="walkout-layer"></div>
     <div class="hud-top">
-      <button id="btn-counter-back" class="btn-back-hud"><img src="assets/icons/back.webp"></button>
-      <div class="hud-item"><img src="assets/icons/clock.webp" class="hud-icon"> <span id="hud-time">${state.time || OPEN_TIME_STR}</span></div>
-      <div class="hud-item"><img src="assets/icons/money.webp" class="hud-icon"> <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div>
-      <div class="hud-item"><img src="assets/icons/star.webp" class="hud-icon"> <span id="hud-star">${state.stars || 0}</span></div>
-      <div class="hud-item"><img src="assets/icons/day.webp" class="hud-icon"> <span id="hud-day">Ngày ${state.day || 1}</span></div>
-      <span id="hud-peak" class="hud-peak" hidden><span class="peak-flame"></span>CAO ĐIỂM</span>
-      <button id="btn-badges" class="hud-mini-btn" title="Tủ huy hiệu"><img src="assets/icons/star.webp"></button>
-      <button id="btn-challenges" class="hud-mini-btn" title="Thử thách hôm nay"><img src="assets/icons/bell.webp"></button>
-      <button id="btn-upgrade" class="hud-mini-btn" title="Nâng cấp quán"><img src="assets/icons/money.webp"></button>
-      <button id="btn-minigame" class="hud-mini-btn" title="Chuẩn bị"><img src="assets/icons/order.webp"></button>
+      <div class="hud-row">
+        <button id="btn-counter-back" class="btn-back-hud"><img src="assets/icons/back.webp"></button>
+        <div class="hud-item"><img src="assets/icons/clock.webp" class="hud-icon"> <span id="hud-time">${state.time || OPEN_TIME_STR}</span></div>
+        <div class="hud-item"><img src="assets/icons/day.webp" class="hud-icon"> <span id="hud-day">Ngày ${state.day || 1}</span></div>
+        <span id="hud-peak" class="hud-peak" hidden><span class="peak-flame"></span>CAO ĐIỂM</span>
+        <div class="hud-mini-group">
+          <button id="btn-badges" class="hud-mini-btn" title="Tủ huy hiệu"><img src="assets/icons/star.webp"></button>
+          <button id="btn-challenges" class="hud-mini-btn" title="Thử thách hôm nay"><img src="assets/icons/bell.webp"></button>
+          <button id="btn-upgrade" class="hud-mini-btn" title="Nâng cấp quán"><img src="assets/icons/money.webp"></button>
+          <button id="btn-minigame" class="hud-mini-btn" title="Chuẩn bị"><img src="assets/icons/order.webp"></button>
+        </div>
+      </div>
+      <div class="hud-row">
+        <div class="hud-item"><img src="assets/icons/money.webp" class="hud-icon"> <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div>
+        <div class="hud-item"><img src="assets/icons/star.webp" class="hud-icon"> <span id="hud-star">${state.stars || 0}</span></div>
+      </div>
     </div>
     <div class="order-ticket"><span class="ticket-label">ĐƠN</span> <span id="order-text">Chờ khách...</span></div>
     <div id="street"></div>
