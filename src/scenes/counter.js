@@ -14,11 +14,9 @@ import { MEAT_META, checkNewUnlocks, getMarketItems, PREMISES_PRICE } from '../l
 import { saveGame } from '../logic/save.js'; // Task 3.5: auto-save
 import { showMinigameMenu, getMinigameBuff } from './minigames.js'; // Task 4.1: minigame chuẩn bị
 
-// Task 2.4b: 18 giây thực = 1 giờ game; đồng hồ chạy 6:00 → 21:00
-const GAME_START_MIN = 6 * 60;   // 6:00
-const GAME_END_MIN = 21 * 60;    // 21:00
-const REAL_SEC_PER_GAME_HOUR = 18;
-const GAME_MIN_PER_REAL_SEC = 60 / REAL_SEC_PER_GAME_HOUR;
+// Task 2.4b: tốc độ đồng hồ + giờ mở/đóng đọc từ config.json (bug #20).
+// Fallback = giá trị cũ nếu config thiếu (giữ tương thích save cũ).
+const _H = { open: 6, close: 21, secondsPerHour: 18 };
 
 // 8 bước làm phở
 export const STEPS = [
@@ -64,7 +62,17 @@ const STATIONS = [
 ];
 
 export function renderCounter(container, state, callbacks = {}) {
-  const { onHotspot = () => {}, onBack = () => {}, paused = false } = callbacks;
+  const { onHotspot = () => {}, onBack = () => {}, paused = false, config = {} } = callbacks;
+
+  // Bug #20: giờ mở/đóng + tốc độ đồng hồ lấy từ config.json (src/config.json -> hours).
+  // Giá trị config hiện tại (open 6, close 21, secondsPerHour 18) trùng hành vi cũ nên không đổi gameplay;
+  // từ nay sửa config.json sẽ có tác dụng thật.
+  const CFG_HOURS = { ..._H, ...(config.hours || {}) };
+  const GAME_START_MIN = CFG_HOURS.open * 60;
+  const GAME_END_MIN = CFG_HOURS.close * 60;
+  const REAL_SEC_PER_GAME_HOUR = CFG_HOURS.secondsPerHour;
+  const GAME_MIN_PER_REAL_SEC = 60 / REAL_SEC_PER_GAME_HOUR;
+  const OPEN_TIME_STR = `${CFG_HOURS.open}:00`;
 
   // Task 2.3: khách hàng — order lấy từ khách đầu hàng, không còn DEMO_ORDER
   const CUSTOMER_SPRITES = {
@@ -107,6 +115,28 @@ export function renderCounter(container, state, callbacks = {}) {
   let arrivalTimer = null;
   let patienceTimer = null;
   let clockTimer = null; // Task 2.4b: đồng hồ game
+  // Bug #16: theo dõi các timeout/interval một lần để clear khi back (tránh rò rỉ qua phiên chơi)
+  const pendingTimers = new Set();
+  function trackTimeout(fn, ms) {
+    const id = setTimeout(() => {
+      pendingTimers.delete(id);
+      fn();
+    }, ms);
+    pendingTimers.add(id);
+    return id;
+  }
+  function trackInterval(fn, ms) {
+    const id = setInterval(fn, ms);
+    pendingTimers.add(id);
+    return id;
+  }
+  function untrackTimer(id) {
+    pendingTimers.delete(id);
+  }
+  function clearPendingTimers() {
+    pendingTimers.forEach(id => { clearTimeout(id); clearInterval(id); });
+    pendingTimers.clear();
+  }
   let dishGen = 0; // token chống race: tăng mỗi lần startDish
   let cookingForId = null; // 3.1b: id khách đang được nấu
   let incidentModalOpen = false; // 3.1c: chống modal sự cố chồng lớp
@@ -157,7 +187,7 @@ export function renderCounter(container, state, callbacks = {}) {
     <div id="walkout-layer"></div>
     <div class="hud-top">
       <button id="btn-counter-back" class="btn-back-hud"><img src="assets/icons/back.webp"></button>
-      <div class="hud-item"><img src="assets/icons/clock.webp" class="hud-icon"> <span id="hud-time">${state.time || '6:00'}</span></div>
+      <div class="hud-item"><img src="assets/icons/clock.webp" class="hud-icon"> <span id="hud-time">${state.time || OPEN_TIME_STR}</span></div>
       <div class="hud-item"><img src="assets/icons/money.webp" class="hud-icon"> <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div>
       <div class="hud-item"><img src="assets/icons/star.webp" class="hud-icon"> <span id="hud-star">${state.stars || 0}</span></div>
       <div class="hud-item"><img src="assets/icons/day.webp" class="hud-icon"> <span id="hud-day">Ngày ${state.day || 1}</span></div>
@@ -295,10 +325,18 @@ export function renderCounter(container, state, callbacks = {}) {
   }
 
   // 3.4: nút tủ huy hiệu + thử thách trong HUD
-  container.querySelector('#btn-badges').addEventListener('click', () => showBadgeCase());
-  container.querySelector('#btn-challenges').addEventListener('click', () => showChallengePanel());
-  container.querySelector('#btn-upgrade').addEventListener('click', () => showUpgradeModal()); // Task 4.2
-  container.querySelector('#btn-minigame').addEventListener('click', () => showMinigameMenu(container, state, { toast, sfx: playSfx })); // Task 4.1
+  // Bug #4: không mở modal HUD khi đang có modal sự cố/công an/app
+  function guardHudModal() {
+    if (incidentModalOpen || policeModalOpen || appModalOpen) {
+      toast('Đóng modal hiện tại trước', true);
+      return false;
+    }
+    return true;
+  }
+  container.querySelector('#btn-badges').addEventListener('click', () => { if (guardHudModal()) showBadgeCase(); });
+  container.querySelector('#btn-challenges').addEventListener('click', () => { if (guardHudModal()) showChallengePanel(); });
+  container.querySelector('#btn-upgrade').addEventListener('click', () => { if (guardHudModal()) showUpgradeModal(); }); // Task 4.2
+  container.querySelector('#btn-minigame').addEventListener('click', () => { if (guardHudModal()) showMinigameMenu(container, state, { toast, sfx: playSfx }); }); // Task 4.1
 
   state.currentStep = 0;
   state.selectedCustomerId = null; // 3.1b: khách đang được chọn (null = đầu hàng)
@@ -306,6 +344,7 @@ export function renderCounter(container, state, callbacks = {}) {
   syncSteps();
 
   let toastTimer = null;
+  let appBombTimeouts = []; // Bug #19: track timeout bom hàng đơn app để hủy khi qua ngày
   function toast(msg, isErr) {
     const el = container.querySelector('#toast');
     el.innerHTML = msg;
@@ -645,12 +684,13 @@ export function renderCounter(container, state, callbacks = {}) {
         <button class="btn-primary police-btn" id="police-run-btn">Dọn ngay!</button>
       `;
       const countEl = box.querySelector('#police-countdown');
-      const timer = setInterval(() => {
+      const timer = trackInterval(() => {
         left -= 1;
         if (left <= 0) {
           if (done) return;
           done = true;
           clearInterval(timer);
+          untrackTimer(timer);
           const doubleFine = fine * 2;
           state.money = Math.max(0, (state.money || 0) - doubleFine);
           updateHUD(container, state);
@@ -665,6 +705,7 @@ export function renderCounter(container, state, callbacks = {}) {
         if (done) return;
         done = true;
         clearInterval(timer);
+        untrackTimer(timer);
         playSfx('success');
         toast('Thoát! Dọn hàng kịp lúc.');
         close();
@@ -827,7 +868,7 @@ export function renderCounter(container, state, callbacks = {}) {
 
   function startClock() {
     clearInterval(clockTimer);
-    // Parse state.time "H:MM" -> phút; fallback 6:00
+    // Parse state.time "H:MM" -> phút; fallback giờ mở từ config
     const parseMinutes = (t) => {
       const m = /^(\d{1,2}):(\d{2})/.exec(t || '');
       if (!m) return GAME_START_MIN;
@@ -847,7 +888,7 @@ export function renderCounter(container, state, callbacks = {}) {
         // Hết ngày: qua ngày mới
         clearInterval(clockTimer);
         state.day = (state.day || 1) + 1;
-        state.time = '6:00';
+        state.time = OPEN_TIME_STR;
         // Task 2.4d: trừ tiền mặt bằng + vốn nguyên liệu đã dùng trong ngày
         // Thuế 10%: tính trên tổng doanh thu ngày
         const dayCost = state.dailyCost || 0;
@@ -871,8 +912,17 @@ export function renderCounter(container, state, callbacks = {}) {
         updateTicket();
         syncSteps(); // reset thanh 8 bước + ẩn nút bưng
         renderCustomers();
+        // Bug #5: đóng tất cả modal đang mở + reset flag khi qua ngày
+        container.querySelectorAll('.name-modal').forEach(m => m.remove());
+        incidentModalOpen = false;
+        policeModalOpen = false;
+        appModalOpen = false;
+        marketModalOpen = false;
         playSfx('success');
         clearTimeout(arrivalTimer); // dừng đón khách trong lúc đi chợ
+        // Bug #19: hủy tất cả timeout bom hàng đang treo — tránh trừ tiền oan vào ngày mới
+        appBombTimeouts.forEach(t => clearTimeout(t));
+        appBombTimeouts = [];
         saveGame(state); // Task 3.5: lưu cuối ngày
         // Đi chợ: mua nguyên liệu bổ sung kho trước khi bắt đầu ngày mới
         const daySummary = `Hết ngày! Trừ mặt bằng ${formatVND(DAILY_RENT)} + vốn ${formatVND(dayCost)} + thuế (10%) ${formatVND(dayTax)}.`;
@@ -907,7 +957,9 @@ export function renderCounter(container, state, callbacks = {}) {
       // 3.1c: roll sự cố mỗi giờ game
       if (hour !== lastIncidentHour) {
         lastIncidentHour = hour;
-        const inc = rollIncident(state.day || 1);
+        let inc = rollIncident(state.day || 1);
+        // Fix bug #3: 'no-broth' chi trigger sau khi da ban it nhat 3 to
+        if (inc === 'no-broth' && ((state.stats && state.stats.dailyServed) || 0) < 3) inc = null;
         if (inc) showIncidentModal(inc);
         // 3.2: đơn app (mở khóa ngày 2, ~15%/giờ)
         else if (shouldHaveAppOrder(state.day || 1) && !queue.isFull()) {
@@ -1041,7 +1093,7 @@ export function renderCounter(container, state, callbacks = {}) {
       const fbName = target.name;
       const fbMood = fb.mood;
       const fbText = fb.text;
-      setTimeout(() => {
+      trackTimeout(() => {
         if (!container.isConnected) return;
         showFeedbackBubble(fbName, fbMood, fbText);
       }, 4000);
@@ -1050,8 +1102,12 @@ export function renderCounter(container, state, callbacks = {}) {
       // (giữ nguyên: bom hàng không trừ sao, chỉ trừ vốn)
       if (target.isAppOrder) {
         const cost = calcCost(target.order);
-        setTimeout(() => {
+        // Bug #19: lưu ID timeout để hủy khi qua ngày (tránh trừ tiền oan vào ngày mới)
+        // Bug #16: dùng trackTimeout để clear khi back (tránh rò rỉ qua phiên chơi)
+        const bombTid = trackTimeout(() => {
           if (!container.isConnected) return;
+          // Dọn ID khỏi danh sách khi timeout đã fire
+          appBombTimeouts = appBombTimeouts.filter(t => t !== bombTid);
           // Bug #14 fix: dùng kết quả roll chung của cả đơn, không roll riêng từng suất
           if (target.willCancel) {
             state.money = Math.max(0, (state.money || 0) - cost);
@@ -1061,9 +1117,10 @@ export function renderCounter(container, state, callbacks = {}) {
             toast(`Bom hàng! ${target.name} (${target.appName}) hủy đơn. Mất vốn ${formatVND(cost)}.`, true);
           }
         }, appCancelDelayMs());
+        appBombTimeouts.push(bombTid);
       }
     }
-    setTimeout(() => {
+    trackTimeout(() => {
       if (!container.isConnected || cooking) return; // đã có món mới đang nấu thì bỏ qua
       startNextDish();
     }, 1500);
@@ -1092,6 +1149,11 @@ export function renderCounter(container, state, callbacks = {}) {
     container.appendChild(modal);
     const close = () => { modal.remove(); incidentModalOpen = false; };
     modal.querySelector('[data-act="remake"]').addEventListener('click', () => {
+      if (!queue.list().some(c => c.id === target.id)) {
+        toast('Khách đã rời đi!', true);
+        close();
+        return;
+      }
       flow.startDish(target.order);
       dishGen++;
       cookingForId = target.id;
@@ -1167,7 +1229,7 @@ export function renderCounter(container, state, callbacks = {}) {
         playSfx('click');
         toast('Đang nấu nước dùng mới...');
         close();
-        setTimeout(() => {
+        trackTimeout(() => {
           if (!container.isConnected) return;
           state.brothBlockedUntil = 0;
           toast('Nước dùng đã sẵn sàng!');
@@ -1311,6 +1373,7 @@ export function renderCounter(container, state, callbacks = {}) {
     clearInterval(patienceTimer);
     clearInterval(clockTimer);
     clearTimeout(toastTimer);
+    clearPendingTimers(); // Bug #16: clear tất cả timeout/interval một lần (feedback, bom hàng, nấu tiếp, nước dùng, công an)
     onBack();
   });
 
@@ -1334,7 +1397,7 @@ export function renderCounter(container, state, callbacks = {}) {
     overlay.innerHTML = `
       <div class="resume-box">
         <h2>Chào mừng trở lại!</h2>
-        <p class="resume-desc">Quán của bạn đang ở ngày ${state.day || 1}, lúc ${state.time || '6:00'}.</p>
+        <p class="resume-desc">Quán của bạn đang ở ngày ${state.day || 1}, lúc ${state.time || OPEN_TIME_STR}.</p>
         <button id="btn-resume" class="btn-primary">Bán tiếp</button>
       </div>
     `;
@@ -1354,7 +1417,7 @@ export function updateHUD(container, state) {
     const el = container.querySelector(id);
     if (el) el.textContent = val;
   };
-  set('#hud-time', state.time || '6:00');
+  set('#hud-time', state.time || OPEN_TIME_STR);
   set('#hud-money', `${(state.money || 0).toLocaleString('vi-VN')}đ`);
   set('#hud-star', state.stars || 0);
   set('#hud-day', `Ngày ${state.day || 1}`);
