@@ -21,7 +21,7 @@ export function checkNewBadges(stats, unlockedIds) {
 export const CHALLENGE_POOL = [
   { id: 'ga5',      name: 'Bán 5 tô phở gà',            check: (s) => (s.dailyGa || 0) >= 5,                        reward: 30000 },
   { id: 'earn200',  name: 'Kiếm 200k trong ngày',       check: (s) => (s.dailyEarned || 0) >= 200000,               reward: 20000 },
-  { id: 'noleave',  name: 'Không để khách nào bỏ đi',   check: (s) => (s.dailyServed || 0) > 0 && (s.dailyLeft || 0) === 0, reward: 50000 },
+  { id: 'noleave',  name: 'Phục vụ 10 khách, không ai bỏ đi', check: (s) => (s.dailyServed || 0) >= 10 && (s.dailyLeft || 0) === 0, reward: 50000 },
   { id: 'serve10',  name: 'Phục vụ 10 khách',          check: (s) => (s.dailyServed || 0) >= 10,                   reward: 40000 },
   { id: 'perfect3', name: '3 tô perfect trong ngày',   check: (s) => (s.dailyPerfect || 0) >= 3,                   reward: 40000 },
   { id: 'happy5',   name: '5 khách hài lòng',          check: (s) => (s.dailyHappy || 0) >= 5,                     reward: 30000 },
