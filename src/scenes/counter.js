@@ -73,6 +73,15 @@ export function renderCounter(container, state, callbacks = {}) {
     'shipper': 'assets/sprites/shipper-v2.webp',
     'ba-cu': 'assets/sprites/ba-cu-v2.webp',
   };
+  // Walk cycle frames (2 frame/nhân vật) cho animation đi bộ frame-by-frame
+  const WALK_SPRITES = {
+    'ong-gia': ['assets/sprites/ong-gia-walk1.webp', 'assets/sprites/ong-gia-walk2.webp'],
+    'co-gai': ['assets/sprites/co-gai-walk1.webp', 'assets/sprites/co-gai-walk2.webp'],
+    'shipper': ['assets/sprites/shipper-walk1.webp', 'assets/sprites/shipper-walk2.webp'],
+    'ba-cu': ['assets/sprites/ba-cu-walk1.webp', 'assets/sprites/ba-cu-walk2.webp'],
+  };
+  // Preload walk frames để đổi frame không giật
+  Object.values(WALK_SPRITES).flat().forEach(src => { const im = new Image(); im.src = src; });
   const queue = createQueue(3);
   // 4.6 Phase 2: 3 bàn ăn — khách thường ngồi bàn, shipper đứng khu riêng
   // (khởi tạo mới mỗi lần vào quầy → reset khi load save, đúng spec)
@@ -202,11 +211,18 @@ export function renderCounter(container, state, callbacks = {}) {
       p.style.animationDuration = `${duration.toFixed(2)}s`;
       p.style.animationDelay = `${(-Math.random() * duration).toFixed(2)}s`; // phân bố đều, hiện ngay
       p.style.top = `${28 + Math.random() * 20}px`;
-      const img = document.createElement('img');
-      img.src = CUSTOMER_SPRITES[type];
-      img.alt = '';
-      img.draggable = false;
-      p.appendChild(img);
+      // Walk cycle frame-by-frame: 2 frame đổi nhau bằng CSS (pure CSS, không JS timer)
+      const frames = document.createElement('span');
+      frames.className = 'walk-frames';
+      const [w1, w2] = WALK_SPRITES[type];
+      const f1 = document.createElement('img');
+      f1.src = w1; f1.alt = ''; f1.draggable = false;
+      const f2 = document.createElement('img');
+      f2.src = w2; f2.alt = ''; f2.draggable = false;
+      f2.className = 'walk-f2';
+      frames.appendChild(f1);
+      frames.appendChild(f2);
+      p.appendChild(frames);
       street.appendChild(p);
     });
   })();
@@ -215,7 +231,12 @@ export function renderCounter(container, state, callbacks = {}) {
   const justArrived = new Set();
   function markJustArrived(id) {
     justArrived.add(id);
-    setTimeout(() => justArrived.delete(id), 900);
+    setTimeout(() => {
+      justArrived.delete(id);
+      // Đi vào xong: gỡ class để avatar về ảnh tĩnh (walk frames ẩn theo CSS)
+      const el = container.querySelector(`.customer[data-id="${id}"].walking-in`);
+      if (el) el.classList.remove('walking-in');
+    }, 900);
   }
 
   // 4.6 Phase 1+2: khách đi bộ ra — gắn class vào element live
@@ -671,7 +692,13 @@ export function renderCounter(container, state, callbacks = {}) {
     const selId = state.selectedCustomerId;
     return `
     <div class="customer${c.id === activeId ? ' serving' : ''}${c.id === selId ? ' selected' : ''}${walkIn}${extraCls ? ' ' + extraCls : ''}" data-id="${c.id}">
-      <img class="customer-avatar" src="${CUSTOMER_SPRITES[c.type]}" alt="${c.name}" draggable="false">
+      <span class="customer-avatar-wrap">
+        <img class="customer-avatar" src="${CUSTOMER_SPRITES[c.type]}" alt="${c.name}" draggable="false">
+        <span class="walk-frames" aria-hidden="true">
+          <img src="${WALK_SPRITES[c.type][0]}" alt="" draggable="false">
+          <img class="walk-f2" src="${WALK_SPRITES[c.type][1]}" alt="" draggable="false">
+        </span>
+      </span>
       <div class="customer-name">${c.name}${c.type === 'shipper' ? ' <span class="shipper-tag">Shipper</span>' : ''}${c.isAppOrder ? ' <span class="app-badge">APP</span>' : ''}</div>
       <div class="customer-order">${shortOrderText(c.order)}</div>
       <div class="patience-bar"><div class="patience-fill ${cls}" style="width:${pct}%"></div></div>
