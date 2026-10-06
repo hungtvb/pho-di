@@ -58,11 +58,10 @@ export function renderIntro(container, onStart, opts = {}) {
       signboard.textContent = modalInput.value;
     });
     modal.querySelector('#modal-confirm').addEventListener('click', () => {
-      const name = modalInput.value.trim();
-      if (name) {
-        setShopName(name);
-        modal.remove();
-      }
+      const name = modalInput.value.trim() || 'Quán Phở';
+      setShopName(name);
+      signboard.textContent = name;
+      modal.remove();
       playSfx('click');
     });
     // Focus vào input
