@@ -290,7 +290,8 @@ export function renderCounter(container, state, callbacks = {}) {
     bowl.alt = '';
     bowl.draggable = false;
     deco.appendChild(bowl);
-    setTimeout(() => { if (bowl.isConnected) bowl.remove(); }, 2000);
+    deco.classList.add('eating');
+    setTimeout(() => { if (bowl.isConnected) bowl.remove(); deco.classList.remove('eating'); }, 2000);
   }
 
   // 3.4: nút tủ huy hiệu + thử thách trong HUD
