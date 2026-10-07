@@ -435,12 +435,17 @@ h1, h2, h3, .btn-primary {
 }
 /* UI: HUD chia 3 khối đều nhau, căn giữa 2 chiều */
 .hud-block {
-  flex: 1 1 0;
-  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
+}
+.hud-block-edge {
+  flex: 0 0 auto;
+}
+.hud-block-center {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 /* Hàng 2: cụm tiền + sao gom giữa màn hình */
 .hud-row-center { justify-content: center; }
