@@ -201,9 +201,11 @@ export function renderCounter(container, state, callbacks = {}) {
         <button data-act="upgrade"><img src="assets/icons/money.webp" alt=""><span>Nâng cấp quán</span></button>
         <button data-act="minigame"><img src="assets/icons/order.webp" alt=""><span>Chuẩn bị</span></button>
       </div>
-      <div class="hud-row">
-        <div class="hud-block"><div class="hud-item"><img src="assets/icons/money.webp" class="hud-icon"> <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div></div>
-        <div class="hud-block"><div class="hud-item"><img src="assets/icons/star.webp" class="hud-icon"> <span id="hud-star">${state.stars || 0}</span></div></div>
+      <div class="hud-row hud-row-center">
+        <div class="hud-cluster">
+          <div class="hud-item"><img src="assets/icons/money.webp" class="hud-icon"> <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div>
+          <div class="hud-item"><img src="assets/icons/star.webp" class="hud-icon"> <span id="hud-star">${state.stars || 0}</span></div>
+        </div>
       </div>
     </div>
     <div class="order-ticket"><span class="ticket-label">ĐƠN</span> <span id="order-text">Chờ khách...</span></div>
