@@ -192,11 +192,14 @@ export function renderCounter(container, state, callbacks = {}) {
         <div class="hud-item"><img src="assets/icons/day.webp" class="hud-icon"> <span id="hud-day">Ngày ${state.day || 1}</span></div>
         <span id="hud-peak" class="hud-peak" hidden><span class="peak-flame"></span>CAO ĐIỂM</span>
         <div class="hud-mini-group">
-          <button id="btn-badges" class="hud-mini-btn" title="Tủ huy hiệu"><img src="assets/icons/star.webp"></button>
-          <button id="btn-challenges" class="hud-mini-btn" title="Thử thách hôm nay"><img src="assets/icons/bell.webp"></button>
-          <button id="btn-upgrade" class="hud-mini-btn" title="Nâng cấp quán"><img src="assets/icons/money.webp"></button>
-          <button id="btn-minigame" class="hud-mini-btn" title="Chuẩn bị"><img src="assets/icons/order.webp"></button>
+          <button id="btn-hud-menu" class="hud-mini-btn hud-menu-btn" title="Menu">&#8943;</button>
         </div>
+      </div>
+      <div class="hud-menu" id="hud-menu" hidden>
+        <button data-act="badges"><img src="assets/icons/star.webp" alt=""><span>Tủ huy hiệu</span></button>
+        <button data-act="challenges"><img src="assets/icons/bell.webp" alt=""><span>Thử thách hôm nay</span></button>
+        <button data-act="upgrade"><img src="assets/icons/money.webp" alt=""><span>Nâng cấp quán</span></button>
+        <button data-act="minigame"><img src="assets/icons/order.webp" alt=""><span>Chuẩn bị</span></button>
       </div>
       <div class="hud-row">
         <div class="hud-item"><img src="assets/icons/money.webp" class="hud-icon"> <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div>
@@ -214,10 +217,7 @@ export function renderCounter(container, state, callbacks = {}) {
           <div class="table-deco"><div class="table-top"></div><div class="chair chair-l"></div><div class="chair chair-r"></div></div>
         </div>`).join('')}
     </div>
-    <div class="shipper-zone" id="shipper-zone">
-      <div class="shipper-sign">Chờ lấy món</div>
-      <div class="shipper-list"></div>
-    </div>
+    <div class="shipper-corner" id="shipper-corner"></div>
     <div class="station-layer">
       ${visibleStations(state.unlockedMeats).map(stationHTML).join('')}
     </div>
@@ -225,14 +225,7 @@ export function renderCounter(container, state, callbacks = {}) {
       <button class="btn-serve" id="btn-serve"><img src="assets/icons/steps/bung.webp" style="width:24px;height:24px;vertical-align:middle;"> Bưng ra phục vụ!</button>
     </div>
     <div class="toast" id="toast" hidden></div>
-    <div class="hud-steps">
-      ${STEPS.map((s, i) => `
-        <div class="step" data-step="${i}">
-          <span class="step-icon"><img src="${s.icon}" alt="${s.label}"></span>
-          <span class="step-label">${s.label}</span>
-        </div>
-      `).join('')}
-    </div>
+
   `;
 
   // 4.6 Phase 1: người đi bộ ambient trên phố (4 người, loop CSS vô hạn)
@@ -312,7 +305,7 @@ export function renderCounter(container, state, callbacks = {}) {
     renderCustomers();
     updateTicket();
   }
-  ['#customer-row', '#dining-area', '#shipper-zone'].forEach(sel => {
+  ['#customer-row', '#dining-area', '#shipper-corner'].forEach(sel => {
     container.querySelector(sel).addEventListener('click', onCustomerClick);
   });
 
@@ -339,10 +332,26 @@ export function renderCounter(container, state, callbacks = {}) {
     }
     return true;
   }
-  container.querySelector('#btn-badges').addEventListener('click', () => { if (guardHudModal()) showBadgeCase(); });
-  container.querySelector('#btn-challenges').addEventListener('click', () => { if (guardHudModal()) showChallengePanel(); });
-  container.querySelector('#btn-upgrade').addEventListener('click', () => { if (guardHudModal()) showUpgradeModal(); }); // Task 4.2
-  container.querySelector('#btn-minigame').addEventListener('click', () => { if (guardHudModal()) showMinigameMenu(container, state, { toast, sfx: playSfx }); }); // Task 4.1
+  // HUD menu: 1 nut mo dropdown chua 4 chuc nang cu (giữ nguyên handler)
+  const hudMenu = container.querySelector('#hud-menu');
+  const menuActions = {
+    badges: () => { if (guardHudModal()) showBadgeCase(); },
+    challenges: () => { if (guardHudModal()) showChallengePanel(); },
+    upgrade: () => { if (guardHudModal()) showUpgradeModal(); }, // Task 4.2
+    minigame: () => { if (guardHudModal()) showMinigameMenu(container, state, { toast, sfx: playSfx }); }, // Task 4.1
+  };
+  container.querySelector('#btn-hud-menu').addEventListener('click', (e) => {
+    e.stopPropagation();
+    hudMenu.hidden = !hudMenu.hidden;
+  });
+  hudMenu.querySelectorAll('button[data-act]').forEach((b) => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hudMenu.hidden = true;
+      menuActions[b.dataset.act]();
+    });
+  });
+  container.addEventListener('click', () => { hudMenu.hidden = true; }); // bấm ngoài -> đóng menu
 
   state.currentStep = 0;
   state.selectedCustomerId = null; // 3.1b: khách đang được chọn (null = đầu hàng)
@@ -755,6 +764,29 @@ export function renderCounter(container, state, callbacks = {}) {
     </div>`;
   }
 
+  // Shipper ngồi ghế riêng ở góc (thay khung zone) — giữ class customer + data-id để chọn khách & patience bar vẫn chạy
+  function shipperSeatHTML(c) {
+    const pct = Math.max(0, (c.patience / c.maxPatience) * 100);
+    const cls = pct > 50 ? 'high' : pct > 25 ? 'mid' : 'low';
+    const walkIn = justArrived.has(c.id) ? ' walking-in' : ''; // 4.6 Phase 1
+    const activeId = cooking ? cookingForId : null;
+    const selId = state.selectedCustomerId;
+    return `
+    <div class="customer shipper-seat${c.id === activeId ? ' serving' : ''}${c.id === selId ? ' selected' : ''}${walkIn}" data-id="${c.id}">
+      <span class="shipper-seat-figure">
+        <img class="customer-avatar" src="${CUSTOMER_SPRITES[c.type]}" alt="${c.name}" draggable="false">
+        <span class="walk-frames" aria-hidden="true">
+          <img src="${WALK_SPRITES[c.type][0]}" alt="" draggable="false">
+          <img class="walk-f2" src="${WALK_SPRITES[c.type][1]}" alt="" draggable="false">
+        </span>
+        <span class="chair"></span>
+      </span>
+      <div class="customer-name">${c.name}${c.isAppOrder ? ' <span class="app-badge">APP</span>' : ''}</div>
+      <div class="customer-order">${shortOrderText(c.order)}</div>
+      <div class="patience-bar"><div class="patience-fill ${cls}" style="width:${pct}%"></div></div>
+    </div>`;
+  }
+
   function renderCustomers() {
     const list = queue.list();
     // 3.1b: xóa chọn nếu khách đã rời hàng
@@ -777,11 +809,9 @@ export function renderCounter(container, state, callbacks = {}) {
       slot.innerHTML = c ? customerCardHTML(c, 'seated') : '';
     });
     // 3. Khu shipper (đứng chờ lấy món) — luôn chiếm chỗ, hiện placeholder khi trống
-    const zone = container.querySelector('#shipper-zone');
-    const shipperList = zone.querySelector('.shipper-list');
-    shipperList.innerHTML = shippers.length
-      ? shippers.map(c => customerCardHTML(c)).join('')
-      : '<div class="shipper-empty">Chưa có shipper</div>';
+    // Shipper ngồi ghế riêng ở góc — trống thì không chiếm chỗ
+    container.querySelector('#shipper-corner').innerHTML =
+      shippers.map(c => shipperSeatHTML(c)).join('');
   }
 
   // Cập nhật thanh kiên nhẫn (không re-render cả hàng)
