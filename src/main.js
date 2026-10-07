@@ -30,7 +30,7 @@ function preloadImages(urls) {
 }
 
 const CRITICAL_ASSETS = [
-  'assets/logo-pho.webp',
+  'assets/logo-pho-di-final.png',
   'assets/backgrounds/bg-intro-final.webp',
   'assets/icons/music-on.webp',
   'assets/icons/music-off.webp',
@@ -95,7 +95,7 @@ async function main() {
       money: config.startMoney || 500000,
       stars: 0,
       day: 1,
-      time: '6:00',
+      time: `${config.hours?.open ?? 6}:00`, // bug #20: giờ mở ngày lấy từ config.json
       currentStep: 0,
       dailyCost: 0, // vốn nguyên liệu đã dùng trong ngày (Task 2.4d)
       dailyRevenue: 0, // doanh thu trong ngày để tính thuế 10% cuối ngày
@@ -103,7 +103,7 @@ async function main() {
       ownedPremises: false, // Task 4.2: đã mua mặt bằng → miễn công an
       unlockedMeats: [], // Task 4.2: meat key món đã mở khóa (tai, nam)
       minigameBuff: null, // Task 4.1: { day, pct } buff +5% tiền bán trong ngày
-      lastMinigame: null, // Task 4.1: { id, day } lần chơi minigame gần nhất
+      minigameCooldown: {}, // Task 4.1: { gameId: day } cooldown 2 ngày riêng từng minigame
       stats: {
         happy: 0, neutral: 0, angry: 0, // thống kê feedback (Task 3.3)
         // Task 3.4: huy hiệu + thử thách
@@ -165,6 +165,7 @@ async function main() {
     // Xóa nội dung quầy cũ (tránh render chồng khi chơi lại)
     counterEl.innerHTML = '';
     renderCounter(counterEl, gameState, {
+      config, // bug #20: truyền config.json xuống quầy (giờ mở/đóng, tốc độ đồng hồ)
       onHotspot: (id) => {
         console.log('[Phở Đi!] chạm hotspot:', id, '(tapflow ở task 2.2)');
       },
