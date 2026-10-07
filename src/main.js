@@ -31,7 +31,7 @@ function preloadImages(urls) {
 
 const CRITICAL_ASSETS = [
   'assets/logo-pho-di-final.png',
-  'assets/backgrounds/bg-intro-final.webp',
+  'assets/backgrounds/bg-intro-fresh-green.webp',
   'assets/icons/music-on.webp',
   'assets/icons/music-off.webp',
   'assets/icons/sound-on.webp',
