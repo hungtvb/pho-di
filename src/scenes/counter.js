@@ -187,13 +187,13 @@ export function renderCounter(container, state, callbacks = {}) {
     <div id="walkout-layer"></div>
     <div class="hud-top">
       <div class="hud-row">
-        <button id="btn-counter-back" class="btn-back-hud"><img src="assets/icons/back.webp"></button>
-        <div class="hud-item"><img src="assets/icons/clock.webp" class="hud-icon"> <span id="hud-time">${state.time || OPEN_TIME_STR}</span></div>
-        <div class="hud-item"><img src="assets/icons/day.webp" class="hud-icon"> <span id="hud-day">Ngày ${state.day || 1}</span></div>
-        <span id="hud-peak" class="hud-peak" hidden><span class="peak-flame"></span>CAO ĐIỂM</span>
-        <div class="hud-mini-group">
-          <button id="btn-hud-menu" class="hud-mini-btn hud-menu-btn" title="Menu">&#8943;</button>
+        <div class="hud-block"><button id="btn-counter-back" class="btn-back-hud"><img src="assets/icons/back.webp"></button></div>
+        <div class="hud-block">
+          <div class="hud-item"><img src="assets/icons/clock.webp" class="hud-icon"> <span id="hud-time">${state.time || OPEN_TIME_STR}</span></div>
+          <div class="hud-item"><img src="assets/icons/day.webp" class="hud-icon"> <span id="hud-day">Ngày ${state.day || 1}</span></div>
+          <span id="hud-peak" class="hud-peak" hidden><span class="peak-flame"></span>CAO ĐIỂM</span>
         </div>
+        <div class="hud-block"><button id="btn-hud-menu" class="hud-mini-btn hud-menu-btn" title="Menu">&#8943;</button></div>
       </div>
       <div class="hud-menu" id="hud-menu" hidden>
         <button data-act="badges"><img src="assets/icons/star.webp" alt=""><span>Tủ huy hiệu</span></button>
@@ -202,8 +202,8 @@ export function renderCounter(container, state, callbacks = {}) {
         <button data-act="minigame"><img src="assets/icons/order.webp" alt=""><span>Chuẩn bị</span></button>
       </div>
       <div class="hud-row">
-        <div class="hud-item"><img src="assets/icons/money.webp" class="hud-icon"> <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div>
-        <div class="hud-item"><img src="assets/icons/star.webp" class="hud-icon"> <span id="hud-star">${state.stars || 0}</span></div>
+        <div class="hud-block"><div class="hud-item"><img src="assets/icons/money.webp" class="hud-icon"> <span id="hud-money">${(state.money || 0).toLocaleString('vi-VN')}đ</span></div></div>
+        <div class="hud-block"><div class="hud-item"><img src="assets/icons/star.webp" class="hud-icon"> <span id="hud-star">${state.stars || 0}</span></div></div>
       </div>
     </div>
     <div class="order-ticket"><span class="ticket-label">ĐƠN</span> <span id="order-text">Chờ khách...</span></div>
@@ -217,7 +217,14 @@ export function renderCounter(container, state, callbacks = {}) {
           <div class="table-deco"><div class="table-top"></div><div class="chair chair-l"></div><div class="chair chair-r"></div></div>
         </div>`).join('')}
     </div>
-    <div class="shipper-corner" id="shipper-corner"></div>
+    <div class="shipper-corner" id="shipper-corner">
+      <div class="shipper-shelter">
+        <div class="shipper-awning"></div>
+        <div class="shipper-sign">SHIPPER</div>
+        <div class="shipper-seats" id="shipper-seats"></div>
+        <div class="shipper-bench"></div>
+      </div>
+    </div>
     <div class="station-layer">
       ${visibleStations(state.unlockedMeats).map(stationHTML).join('')}
     </div>
@@ -764,7 +771,32 @@ export function renderCounter(container, state, callbacks = {}) {
     </div>`;
   }
 
-  // Shipper ngồi ghế riêng ở góc (thay khung zone) — giữ class customer + data-id để chọn khách & patience bar vẫn chạy
+  // Khách ngồi bàn: avatar tách khỏi card, neo cố định theo bàn (không bị card
+  // dài/ngắn đẩy lên xuống → đầu luôn hiện đủ phía trên mặt bàn)
+  function seatedCustomerHTML(c) {
+    const pct = Math.max(0, (c.patience / c.maxPatience) * 100);
+    const cls = pct > 50 ? 'high' : pct > 25 ? 'mid' : 'low';
+    const walkIn = justArrived.has(c.id) ? ' walking-in' : '';
+    const activeId = cooking ? cookingForId : null;
+    const selId = state.selectedCustomerId;
+    return `
+    <div class="customer seated-wrap${c.id === activeId ? ' serving' : ''}${c.id === selId ? ' selected' : ''}${walkIn}" data-id="${c.id}">
+      <div class="seated-card">
+        <div class="customer-name">${c.name}${c.isAppOrder ? ' <span class="app-badge">APP</span>' : ''}</div>
+        <div class="customer-order">${shortOrderText(c.order)}</div>
+        <div class="patience-bar"><div class="patience-fill ${cls}" style="width:${pct}%"></div></div>
+      </div>
+      <span class="seated-avatar">
+        <img class="customer-avatar" src="${CUSTOMER_SPRITES[c.type]}" alt="${c.name}" draggable="false">
+        <span class="walk-frames" aria-hidden="true">
+          <img src="${WALK_SPRITES[c.type][0]}" alt="" draggable="false">
+          <img class="walk-f2" src="${WALK_SPRITES[c.type][1]}" alt="" draggable="false">
+        </span>
+      </span>
+    </div>`;
+  }
+
+  // Shipper ngồi ghế dài ở góc quán (khu chờ cố định, luôn hiện)
   function shipperSeatHTML(c) {
     const pct = Math.max(0, (c.patience / c.maxPatience) * 100);
     const cls = pct > 50 ? 'high' : pct > 25 ? 'mid' : 'low';
@@ -773,17 +805,18 @@ export function renderCounter(container, state, callbacks = {}) {
     const selId = state.selectedCustomerId;
     return `
     <div class="customer shipper-seat${c.id === activeId ? ' serving' : ''}${c.id === selId ? ' selected' : ''}${walkIn}" data-id="${c.id}">
-      <span class="shipper-seat-figure">
+      <div class="shipper-info">
+        <div class="customer-name">${c.name}</div>
+        <div class="customer-order">${shortOrderText(c.order)}</div>
+        <div class="patience-bar"><div class="patience-fill ${cls}" style="width:${pct}%"></div></div>
+      </div>
+      <span class="shipper-avatar-wrap">
         <img class="customer-avatar" src="${CUSTOMER_SPRITES[c.type]}" alt="${c.name}" draggable="false">
         <span class="walk-frames" aria-hidden="true">
           <img src="${WALK_SPRITES[c.type][0]}" alt="" draggable="false">
           <img class="walk-f2" src="${WALK_SPRITES[c.type][1]}" alt="" draggable="false">
         </span>
-        <span class="chair"></span>
       </span>
-      <div class="customer-name">${c.name}${c.isAppOrder ? ' <span class="app-badge">APP</span>' : ''}</div>
-      <div class="customer-order">${shortOrderText(c.order)}</div>
-      <div class="patience-bar"><div class="patience-fill ${cls}" style="width:${pct}%"></div></div>
     </div>`;
   }
 
@@ -806,11 +839,10 @@ export function renderCounter(container, state, callbacks = {}) {
       const slot = container.querySelector(`#dining-area .table-spot[data-table="${t.id}"] .seat-slot`);
       if (!slot) return;
       const c = t.occupiedBy != null ? list.find(x => x.id === t.occupiedBy) : null;
-      slot.innerHTML = c ? customerCardHTML(c, 'seated') : '';
+      slot.innerHTML = c ? seatedCustomerHTML(c) : '';
     });
-    // 3. Khu shipper (đứng chờ lấy món) — luôn chiếm chỗ, hiện placeholder khi trống
-    // Shipper ngồi ghế riêng ở góc — trống thì không chiếm chỗ
-    container.querySelector('#shipper-corner').innerHTML =
+    // 3. Khu shipper: góc quán cố định (mái che + biển + ghế dài), luôn hiện
+    container.querySelector('#shipper-seats').innerHTML =
       shippers.map(c => shipperSeatHTML(c)).join('');
   }
 
