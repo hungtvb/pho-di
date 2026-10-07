@@ -1,6 +1,6 @@
 import { playSfx, toggleMusic, toggleSfx, getSettings } from '../audio.js';
 
-const BG_URL = 'assets/backgrounds/bg-intro-final.webp';
+const BG_URL = 'assets/backgrounds/bg-intro-fresh-green.webp';
 const LS_SHOP_NAME = 'pho-di/shop-name';
 
 export function getShopName() {
