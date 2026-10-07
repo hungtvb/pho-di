@@ -295,7 +295,7 @@ h1, h2, h3, .btn-primary {
 .toggle-icon { width: 28px; height: 28px; object-fit: contain; display: block; }
 
 /* ---- Counter scene (task 2.1) ---- */
-#screen-counter.active { padding: 0; display: flex; flex-direction: column; align-items: center; position: relative; height: 100%; }
+#screen-counter.active { padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; height: 100%; }
 /* Background CSS: gradient ấm, contrast thấp, màu tươi sáng */
 .counter-bg-css {
   position: absolute;
@@ -323,10 +323,14 @@ h1, h2, h3, .btn-primary {
   position: relative;
   z-index: 1;
   flex: none;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-  padding: 10px 10px;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  gap: 8px;
+  padding: 10px 12px;
   margin-top: 6px;
   width: calc(100% - 24px);
   box-sizing: border-box;
@@ -335,13 +339,15 @@ h1, h2, h3, .btn-primary {
   border: 3px solid #8D6E63;
   box-shadow: 0 8px 24px rgba(46,125,50,0.25), inset 0 2px 0 rgba(255,255,255,0.3);
 }
+.station-layer::-webkit-scrollbar { display: none; }
 .station {
-  width: 100%;
-  max-width: 100%;
+  flex: 0 0 auto;
+  width: 78px;
+  scroll-snap-align: start;
   background: rgba(255,255,255,0.92);
   border: 2px solid rgba(255,255,255,0.95);
   border-radius: 12px;
-  padding: 4px 3px 14px;
+  padding: 6px 4px 8px;
   cursor: pointer;
   box-shadow: 0 3px 8px rgba(46,125,50,0.2);
   transition: transform 0.1s ease, box-shadow 0.15s ease;
@@ -351,16 +357,15 @@ h1, h2, h3, .btn-primary {
   min-height: 0;
 }
 .station img {
-  width: 88%;
-  height: auto;
-  aspect-ratio: 1;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   pointer-events: none;
   flex-shrink: 0;
 }
 .station-label {
   font-family: 'Baloo 2', cursive;
-  font-size: 0.65rem;
+  font-size: 11px;
   font-weight: 700;
   color: var(--wood);
   margin-top: 2px;
@@ -380,9 +385,45 @@ h1, h2, h3, .btn-primary {
   flex-direction: column;
   gap: 4px;
   width: 100%;
-  padding: 0.5rem 0.4rem;
+  padding: max(8px, env(safe-area-inset-top)) 0.4rem 0.5rem;
   background: linear-gradient(180deg, rgba(46,125,50,0.75), rgba(46,125,50,0.45));
 }
+/* HUD menu dropdown (gộp 4 nút mini) */
+.hud-menu-btn { font-size: 1.35rem; font-weight: 900; color: #3E2723; line-height: 1; }
+.hud-menu {
+  position: absolute;
+  top: calc(100% - 4px);
+  right: 8px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #FFFDE7;
+  border: 2px solid #3E2723;
+  border-radius: 14px;
+  padding: 6px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  min-width: 176px;
+}
+.hud-menu[hidden] { display: none; }
+.hud-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-family: 'Baloo 2', cursive;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #3E2723;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+}
+.hud-menu button:active { background: rgba(124,179,66,0.25); }
+.hud-menu button img { width: 24px; height: 24px; object-fit: contain; }
 /* UI major #1: HUD chia 2 hàng theo group */
 .hud-row {
   display: flex;
@@ -411,36 +452,7 @@ h1, h2, h3, .btn-primary {
   z-index: 1;
 }
 /* (hotspot cũ không dùng nữa — dùng .station thay thế) */
-.hud-steps {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-  margin-top: auto;
-  padding: 0.5rem 0.3rem calc(0.5rem + env(safe-area-inset-bottom));
-  background: linear-gradient(0deg, rgba(46,125,50,0.8), rgba(46,125,50,0.5));
-}
-.step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  opacity: 0.45;
-  min-width: 40px;
-}
-.step-icon { font-size: 1.4rem; }
-.step-icon img { width: 28px; height: 28px; object-fit: contain; }
 .hud-icon { width: 22px; height: 22px; object-fit: contain; vertical-align: middle; }
-.step-label {
-  font-family: 'Baloo 2', cursive;
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #fff;
-}
-.step.active { opacity: 1; transform: scale(1.15); }
-.step.active .step-icon { filter: drop-shadow(0 0 6px var(--turmeric)); }
-.step.done { opacity: 0.85; }
-.step.done .step-icon { filter: grayscale(0.3); }
 .btn-back-hud {
   width: 40px;
   height: 40px;
@@ -490,7 +502,7 @@ h1, h2, h3, .btn-primary {
 .toast {
   position: absolute;
   left: 50%;
-  bottom: 110px;
+  top: 112px;
   transform: translateX(-50%);
   z-index: 10;
   max-width: 86%;
@@ -605,12 +617,10 @@ h1, h2, h3, .btn-primary {
   line-height: 1.2;
 }
 .customer-order {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #2E7D32;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.25;
+  overflow-wrap: break-word;
 }
 .patience-bar {
   height: 6px;
@@ -1434,45 +1444,46 @@ h1, h2, h3, .btn-primary {
   pointer-events: none;
 }
 
-/* Khu shipper đứng chờ lấy món — luôn chiếm chỗ, không đẩy layout khi ẩn/hiện */
-.shipper-zone {
+/* Shipper ngồi ghế riêng ở góc màn hình — không khung zone, trống thì ẩn hẳn */
+.shipper-corner {
   position: relative;
   z-index: 2;
   flex: none;
   width: calc(100% - 24px);
-  min-height: 50px;
-  margin-top: 6px;
-  border: 2px dashed #8D6E63;
-  border-radius: 12px;
-  background: rgba(255, 248, 235, 0.88);
-  padding: 4px 6px 8px;
-  box-sizing: border-box;
-}
-.shipper-empty {
-  text-align: center;
-  color: #8D6E63;
-  font-family: 'Baloo 2', cursive;
-  font-weight: 600;
-  font-size: 0.75rem;
-  padding: 8px 0;
-  opacity: 0.55;
-}
-.shipper-sign {
-  font-family: 'Baloo 2', cursive;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #2E7D32;
-  text-align: center;
-}
-.shipper-list {
   display: flex;
+  justify-content: flex-end;
   gap: 8px;
-  justify-content: center;
   margin-top: 4px;
 }
-.shipper-list .customer {
-  max-width: 110px;
+.shipper-corner:empty { display: none; }
+.customer.shipper-seat {
+  flex: 0 1 auto;
+  max-width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 6px 6px;
 }
+.shipper-seat-figure {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 54px;
+}
+.shipper-seat-figure .customer-avatar {
+  width: 40px;
+  height: 40px;
+  position: relative;
+  z-index: 1;
+}
+.shipper-seat-figure .chair {
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 0;
+}
+.shipper-seat .customer-name { font-size: 0.62rem; }
+.shipper-seat .customer-order { font-size: 9px; text-align: center; }
+.shipper-seat .patience-bar { height: 4px; margin-top: 2px; width: 100%; }
 
 /* Tô phở hiện trên bàn 2s sau khi bưng (khách "ăn") */
 .eating-bowl {
