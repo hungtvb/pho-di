@@ -107,6 +107,8 @@ h1, h2, h3, .btn-primary {
   inset: 0;
   background-size: cover;
   background-position: center;
+  /* Chỉnh màu nhẹ cho hợp palette tươi xanh: sáng + tươi hơn chút, ám xanh lá rất nhẹ */
+  filter: brightness(1.05) saturate(1.12) hue-rotate(-5deg);
 }
 .intro-content {
   position: relative;
@@ -114,11 +116,11 @@ h1, h2, h3, .btn-primary {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 35%;
+  padding-top: 38%;
   padding-bottom: 12vh;
   width: 100%;
 }
-.intro-logo { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); position: relative; width: min(64vw, 240px); }
+.intro-logo { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); position: relative; width: min(56vw, 210px); margin-bottom: 0.9rem; }
 .intro-logo-img { width: 100%; height: auto; object-fit: contain; display: block; }
 .intro-logo::before,
 .intro-logo::after,
@@ -172,19 +174,26 @@ h1, h2, h3, .btn-primary {
   animation: btn-bounce 2s ease-in-out infinite;
 }
 .btn-start:hover { filter: brightness(1.08); }
-/* Task 3.5: nút Chơi mới (secondary) */
+/* Task 3.5: nút Chơi mới (secondary) — chữ nâu trên nền kem, nhìn rõ là nút bấm */
 .btn-start-new {
+  font-family: 'Baloo 2', cursive;
   font-size: 1.1rem;
   padding: 0.7rem 2rem;
   margin-top: 0.6rem;
-  background: rgba(255,255,255,0.15);
-  color: var(--cream);
-  border: 2px solid rgba(255,255,255,0.4);
+  background: #FFFDE7;
+  color: #3E2723;
+  border: 2px solid #3E2723;
   border-radius: 999px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
+  box-shadow: 0 3px 0 #3E2723;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
-.btn-start-new:hover { background: rgba(255,255,255,0.25); }
+.btn-start-new:hover { filter: brightness(1.04); }
+.btn-start-new:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #3E2723;
+}
 /* Task 3.5: overlay tạm dừng khi vào từ save */
 .resume-overlay {
   position: absolute;
