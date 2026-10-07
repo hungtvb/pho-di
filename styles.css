@@ -440,7 +440,21 @@ h1, h2, h3, .btn-primary {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
+}
+/* Hàng 2: cụm tiền + sao gom giữa màn hình */
+.hud-row-center { justify-content: center; }
+.hud-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+/* Nút menu ⋯: 34px, đồng bộ nút back (kem + viền nâu + shadow) */
+.hud-mini-btn.hud-menu-btn {
+  width: 34px;
+  height: 34px;
+  font-size: 1.1rem;
 }
 /* Nhóm 4 nút mini HUD hàng 1 */
 .hud-mini-group {
@@ -1310,8 +1324,9 @@ h1, h2, h3, .btn-primary {
 }
 .seat-slot {
   position: relative;
-  z-index: 2;
   width: 100%;
+  /* KHÔNG z-index: để avatar (z-0) nằm dưới bàn (.table-deco z-1) —
+     gỡ nốt stacking context của fix "bàn đè khách" cũ */
 }
 .seat-slot .customer {
   margin: 0 auto;
