@@ -295,7 +295,7 @@ h1, h2, h3, .btn-primary {
 .toggle-icon { width: 28px; height: 28px; object-fit: contain; display: block; }
 
 /* ---- Counter scene (task 2.1) ---- */
-#screen-counter.active { padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; height: 100%; }
+#screen-counter.active { padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; position: relative; height: 100%; }
 /* Background CSS: gradient ấm, contrast thấp, màu tươi sáng */
 .counter-bg-css {
   position: absolute;
@@ -332,6 +332,7 @@ h1, h2, h3, .btn-primary {
   gap: 8px;
   padding: 10px 12px;
   margin-top: 6px;
+  margin-bottom: max(8px, env(safe-area-inset-bottom));
   width: calc(100% - 24px);
   box-sizing: border-box;
   background: linear-gradient(180deg, #8D6E63 0%, #8D6E63 100%);
@@ -380,7 +381,7 @@ h1, h2, h3, .btn-primary {
 }
 .hud-top {
   position: relative;
-  z-index: 2;
+  z-index: 10; /* cao hơn dining-area/customer-row (z-index 2) để dropdown menu không bị che */
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -432,6 +433,15 @@ h1, h2, h3, .btn-primary {
   width: 100%;
   gap: 4px;
 }
+/* UI: HUD chia 3 khối đều nhau, căn giữa 2 chiều */
+.hud-block {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
 /* Nhóm 4 nút mini HUD hàng 1 */
 .hud-mini-group {
   display: flex;
@@ -445,6 +455,10 @@ h1, h2, h3, .btn-primary {
   color: #fff;
   text-shadow: 0 1px 3px rgba(0,0,0,0.5);
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
 }
 .hotspot-layer {
   position: absolute;
@@ -856,17 +870,18 @@ h1, h2, h3, .btn-primary {
 
 /* Nút mini trong HUD */
 .hud-mini-btn {
-  background: rgba(255,255,255,0.85);
-  border: 2px solid #8D6E63;
+  background: #FFFDE7;
+  border: 2px solid #3E2723;
   border-radius: 50%;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 2px 0 rgba(62,39,35,0.35);
 }
 .hud-mini-btn img {
   width: 22px;
@@ -1378,15 +1393,61 @@ h1, h2, h3, .btn-primary {
    của .table-spot, z-index 1) vẽ đè lên phần dưới avatar theo thứ tự DOM.
    Cần gỡ stacking context của fix "bàn đè khách" cũ (z-index 2) để bàn
    đè được avatar, trong khi thẻ info không giao nhau với bàn nên vẫn hiện đủ. */
-.table-spot .seat-slot { z-index: auto; }
-.seat-slot .customer.seated { z-index: auto; }
-.seat-slot .customer.seated .customer-avatar-wrap {
+/* Khách ngồi: avatar neo cố định theo bàn (bottom), không phụ thuộc chiều cao card.
+   table-spot cao 150px: card ở trên (0-~64px), avatar bottom 34px (72-116px),
+   mặt bàn ở 104-150px → avatar hiện ~32px (đầu + vai), bàn che phần dưới. */
+.seat-slot .customer.seated-wrap {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0 auto;
+  position: relative;
+  width: 100%;
+  height: 150px;
+  max-width: none;
+  flex: none;
+  animation: none;
+  cursor: pointer;
+  z-index: auto;
+}
+.seat-slot .customer.seated-wrap.walking-in { animation: walk-in-seated 0.8s ease-out; }
+.seated-card {
   position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255,255,255,0.94);
+  border: 2px solid #8D6E63;
+  border-radius: 12px;
+  padding: 4px 4px 6px;
+  text-align: center;
+  font-family: 'Baloo 2', cursive;
+  box-shadow: 0 2px 6px rgba(46,125,50,0.15);
+  animation: idle-bob 2s ease-in-out infinite;
+  z-index: 2;
+}
+.seated-wrap.serving .seated-card {
+  border-color: #FF9800;
+  box-shadow: 0 0 0 2px rgba(255,152,0,0.35);
+}
+.seated-wrap.selected .seated-card { border-color: #2E7D32; }
+.seated-avatar {
+  position: absolute;
+  bottom: 34px;
   left: 50%;
   transform: translateX(-50%);
-  top: 100%;
-  margin-top: -8px;
+  width: 44px;
+  height: 44px;
+  z-index: 0;
+  pointer-events: none;
 }
+.seated-avatar .customer-avatar { width: 44px; height: 44px; }
+/* walk-in: ẩn avatar tĩnh, hiện frames đi bộ (giữ selector .customer cha) */
+.seated-wrap.walking-in .seated-avatar .customer-avatar { display: none; }
+.seated-wrap.walking-in .seated-avatar .walk-frames { display: block; }
+/* CSS cũ (avatar treo dưới card) không còn dùng — giữ comment để khỏi nhầm */
+/* .seat-slot .customer.seated .customer-avatar-wrap { ... } removed */
 
 /* Khói bốc khi khách đang ăn */
 .table-deco.eating::after {
@@ -1444,7 +1505,8 @@ h1, h2, h3, .btn-primary {
   pointer-events: none;
 }
 
-/* Shipper ngồi ghế riêng ở góc màn hình — không khung zone, trống thì ẩn hẳn */
+/* Khu chờ shipper CỐ ĐỊNH — 1 góc quán: mái che sọc + biển gỗ + ghế dài.
+   Luôn hiện (kể cả khi trống) để nhìn là 1 phần của quán, không phải khung ẩn/hiện. */
 .shipper-corner {
   position: relative;
   z-index: 2;
@@ -1452,38 +1514,111 @@ h1, h2, h3, .btn-primary {
   width: calc(100% - 24px);
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
   margin-top: 4px;
 }
-.shipper-corner:empty { display: none; }
-.customer.shipper-seat {
-  flex: 0 1 auto;
-  max-width: 96px;
+.shipper-shelter {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 4px 6px 6px;
+  min-width: 132px;
+  padding-bottom: 13px; /* chừa chỗ chân ghế */
 }
-.shipper-seat-figure {
-  position: relative;
-  display: inline-block;
-  width: 44px;
-  height: 54px;
+/* Mái che mini sọc xanh-kem */
+.shipper-awning {
+  width: 132px;
+  height: 20px;
+  background: repeating-linear-gradient(90deg, #7CB342 0 11px, #FFFDE7 11px 22px);
+  border: 3px solid #3E2723;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
 }
-.shipper-seat-figure .customer-avatar {
-  width: 40px;
-  height: 40px;
+/* Biển gỗ "SHIPPER" */
+.shipper-sign {
+  background: #8D6E63;
+  border: 2px solid #3E2723;
+  border-radius: 8px;
+  color: #FFFDE7;
+  font-family: 'Baloo 2', cursive;
+  font-weight: 800;
+  font-size: 0.62rem;
+  letter-spacing: 1px;
+  padding: 0 10px;
+  margin-top: -2px;
+  box-shadow: 0 2px 0 rgba(62,39,35,0.35);
+  white-space: nowrap;
+}
+/* Hàng shipper ngồi trên ghế */
+.shipper-seats {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  align-items: flex-end;
+  min-height: 6px;
+  margin-top: 4px;
   position: relative;
   z-index: 1;
 }
-.shipper-seat-figure .chair {
-  left: 50%;
-  transform: translateX(-50%);
+.customer.shipper-seat {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  flex: none;
+  max-width: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+.shipper-info {
+  background: rgba(255,255,255,0.95);
+  border: 2px solid #8D6E63;
+  border-radius: 8px;
+  padding: 1px 5px 3px;
+  text-align: center;
+  font-family: 'Baloo 2', cursive;
+  margin-bottom: 2px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.shipper-info .customer-name { font-size: 0.6rem; }
+.shipper-info .customer-order { font-size: 8.5px; line-height: 1.25; color: #2E7D32; }
+.shipper-info .patience-bar { height: 4px; margin-top: 2px; }
+.shipper-seat.serving .shipper-info { border-color: #FF9800; }
+.shipper-seat.selected .shipper-info { border-color: #2E7D32; }
+.shipper-avatar-wrap {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 38px;
+  margin-bottom: -7px; /* chân avatar nấp sau ghế = đang ngồi */
+}
+.shipper-avatar-wrap .customer-avatar { width: 38px; height: 38px; }
+/* Ghế dài gỗ */
+.shipper-bench {
+  width: 124px;
+  height: 14px;
+  background: linear-gradient(180deg, #A1887F 0%, #8D6E63 100%);
+  border: 3px solid #3E2723;
+  border-radius: 7px;
+  position: relative;
   z-index: 0;
 }
-.shipper-seat .customer-name { font-size: 0.62rem; }
-.shipper-seat .customer-order { font-size: 9px; text-align: center; }
-.shipper-seat .patience-bar { height: 4px; margin-top: 2px; width: 100%; }
+.shipper-bench::before, .shipper-bench::after {
+  content: "";
+  position: absolute;
+  bottom: -13px;
+  width: 7px;
+  height: 11px;
+  background: #8D6E63;
+  border: 2px solid #3E2723;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+}
+.shipper-bench::before { left: 12px; }
+.shipper-bench::after { right: 12px; }
 
 /* Tô phở hiện trên bàn 2s sau khi bưng (khách "ăn") */
 .eating-bowl {
