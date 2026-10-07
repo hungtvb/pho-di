@@ -24,8 +24,7 @@ export function renderIntro(container, onStart, opts = {}) {
 
   container.innerHTML = `
     <div class="intro-bg" style="background-image: url('${BG_URL}')"></div>
-    <div class="intro-overlay"></div>
-    <div class="signboard-name" id="signboard-name">${savedName ? escapeHtml(savedName) : ''}</div>
+        <div class="signboard-name" id="signboard-name">${savedName ? escapeHtml(savedName) : ''}</div>
     <div class="intro-content">
       <div class="intro-logo"><img src="assets/logo-pho-di-final.png" alt="Phở Đi!" class="intro-logo-img"><span class="steam-3" aria-hidden="true"></span></div>
       <h1 class="intro-title" hidden>Phở Đi!</h1>
