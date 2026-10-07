@@ -187,13 +187,13 @@ export function renderCounter(container, state, callbacks = {}) {
     <div id="walkout-layer"></div>
     <div class="hud-top">
       <div class="hud-row">
-        <div class="hud-block"><button id="btn-counter-back" class="btn-back-hud"><img src="assets/icons/back.webp"></button></div>
-        <div class="hud-block">
+        <div class="hud-block hud-block-edge"><button id="btn-counter-back" class="btn-back-hud"><img src="assets/icons/back.webp"></button></div>
+        <div class="hud-block hud-block-center">
           <div class="hud-item"><img src="assets/icons/clock.webp" class="hud-icon"> <span id="hud-time">${state.time || OPEN_TIME_STR}</span></div>
           <div class="hud-item"><img src="assets/icons/day.webp" class="hud-icon"> <span id="hud-day">Ngày ${state.day || 1}</span></div>
           <span id="hud-peak" class="hud-peak" hidden><span class="peak-flame"></span>CAO ĐIỂM</span>
         </div>
-        <div class="hud-block"><button id="btn-hud-menu" class="hud-mini-btn hud-menu-btn" title="Menu">&#8943;</button></div>
+        <div class="hud-block hud-block-edge"><button id="btn-hud-menu" class="hud-mini-btn hud-menu-btn" title="Menu">&#8943;</button></div>
       </div>
       <div class="hud-menu" id="hud-menu" hidden>
         <button data-act="badges"><img src="assets/icons/star.webp" alt=""><span>Tủ huy hiệu</span></button>
