@@ -107,8 +107,6 @@ h1, h2, h3, .btn-primary {
   inset: 0;
   background-size: cover;
   background-position: center;
-  /* Chỉnh màu nhẹ cho hợp palette tươi xanh: sáng + tươi hơn chút, ám xanh lá rất nhẹ */
-  filter: brightness(1.05) saturate(1.12) hue-rotate(-5deg);
 }
 .intro-content {
   position: relative;
