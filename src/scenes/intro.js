@@ -27,8 +27,8 @@ export function renderIntro(container, onStart, opts = {}) {
     <div class="intro-overlay"></div>
     <div class="signboard-name" id="signboard-name">${savedName ? escapeHtml(savedName) : ''}</div>
     <div class="intro-content">
-      <div class="intro-logo"><img src="assets/logo-pho.webp" alt="Phở Đi!" style="width:100px;height:100px;object-fit:contain;"></div>
-      <h1 class="intro-title">Phở Đi!</h1>
+      <div class="intro-logo"><img src="assets/logo-pho-di-final.png" alt="Phở Đi!" class="intro-logo-img"><span class="steam-3" aria-hidden="true"></span></div>
+      <h1 class="intro-title" hidden>Phở Đi!</h1>
       ${startButtons}
       <div class="audio-toggles">
         <button id="btn-music" class="toggle-btn" title="Nhạc nền"><img src="${s.music ? 'assets/icons/music-on.webp' : 'assets/icons/music-off.webp'}" class="toggle-icon"></button>
